@@ -1,0 +1,2304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>JEE 2028 Target Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Mono:wght@400;700&family=Syne:wght@400;600;800&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #13131a;
+    --surface2: #1c1c28;
+    --border: #2a2a3d;
+    --accent: #f0c040;
+    --accent2: #ff6b35;
+    --accent3: #4ecdc4;
+    --text: #e8e8f0;
+    --muted: #6b6b8a;
+    --green: #50fa7b;
+    --red: #ff5555;
+    --blue: #8be9fd;
+    --purple: #bd93f9;
+    --lecture-color: #ff79c6;
+    --self-color: #a3e635;
+    --r: 12px;
+  }
+  [data-theme="light"] {
+    --bg: #f4f1eb;
+    --surface: #ffffff;
+    --surface2: #ede9e0;
+    --border: #d4cfc5;
+    --text: #1a1a2e;
+    --muted: #8a8a9a;
+    --accent: #d4a017;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none; z-index: 9999; opacity: 0.4;
+  }
+
+  header {
+    position: relative;
+    padding: 60px 40px 40px;
+    text-align: center;
+    overflow: hidden;
+  }
+  header::before {
+    content: '';
+    position: absolute;
+    top: -60px; left: 50%; transform: translateX(-50%);
+    width: 600px; height: 300px;
+    background: radial-gradient(ellipse, rgba(240,192,64,0.15) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .top-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 1200px;
+    margin: 0 auto 32px;
+  }
+  .logo-tag {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    color: var(--accent);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    border: 1px solid var(--accent);
+    padding: 4px 10px;
+    border-radius: 4px;
+  }
+  .theme-toggle {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 8px 16px;
+    border-radius: 50px;
+    cursor: pointer;
+    font-family: 'Syne', sans-serif;
+    font-size: 13px;
+    transition: all 0.2s;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .theme-toggle:hover { border-color: var(--accent); color: var(--accent); }
+  h1.main-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(64px, 12vw, 140px);
+    letter-spacing: 6px;
+    line-height: 0.9;
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 60%, #fff 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 8px;
+    animation: fadeSlideUp 0.8s ease both;
+  }
+  .subtitle {
+    font-family: 'Space Mono', monospace;
+    font-size: 13px;
+    color: var(--muted);
+    letter-spacing: 4px;
+    animation: fadeSlideUp 0.8s 0.1s ease both;
+  }
+  @keyframes fadeSlideUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  main {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 24px 80px;
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    gap: 20px;
+  }
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r);
+    padding: 28px;
+    animation: fadeSlideUp 0.6s ease both;
+    transition: border-color 0.2s;
+  }
+  .card:hover { border-color: var(--accent); }
+  .card-title {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 3px;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 20px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .card-title i { font-size: 12px; }
+
+  .days-card { grid-column: span 4; }
+  .days-big {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 96px;
+    line-height: 1;
+    color: var(--accent);
+    letter-spacing: 2px;
+  }
+  .days-label {
+    font-size: 13px;
+    color: var(--muted);
+    margin-top: 4px;
+    font-family: 'Space Mono', monospace;
+  }
+  .motivation {
+    margin-top: 16px;
+    font-size: 14px;
+    color: var(--accent2);
+    font-style: italic;
+    font-weight: 600;
+    border-left: 3px solid var(--accent2);
+    padding-left: 12px;
+  }
+  .countdown-progress {
+    margin-top: 20px;
+    height: 4px;
+    background: var(--surface2);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .countdown-bar {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    border-radius: 2px;
+    transition: width 1s ease;
+  }
+
+  .summary-card { grid-column: span 8; }
+  .summary-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+  }
+  .stat-box {
+    background: var(--surface2);
+    border-radius: 8px;
+    padding: 16px;
+    border: 1px solid var(--border);
+    text-align: center;
+  }
+  .stat-val {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 40px;
+    line-height: 1;
+    color: var(--accent3);
+  }
+  .stat-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 9px;
+    color: var(--muted);
+    letter-spacing: 1px;
+    margin-top: 4px;
+  }
+
+  /* LECTURE COMPLETION */
+  .lec-section { grid-column: span 12; }
+  .lec-subjects-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+  }
+  .lec-subject {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+    transition: border-color 0.2s;
+  }
+  .lec-subject:hover { border-color: var(--blue); }
+  .lec-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+  .lec-name {
+    font-weight: 800;
+    font-size: 14px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .lec-pct {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 24px;
+    line-height: 1;
+  }
+  .lec-bar-track {
+    height: 5px;
+    background: var(--surface);
+    border-radius: 3px;
+    overflow: hidden;
+    margin-bottom: 8px;
+  }
+  .lec-bar-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.4s ease;
+  }
+  .lec-stats-row {
+    display: flex; gap: 12px; margin-bottom: 8px;
+    font-family: 'Space Mono', monospace; font-size: 10px;
+  }
+  .lec-stat { color: var(--muted); }
+  .lec-stat span { color: var(--text); font-weight: 700; }
+  .lec-total-edit {
+    display: flex; align-items: center; gap: 6px;
+    font-family: 'Space Mono', monospace; font-size: 10px;
+    color: var(--muted); margin-bottom: 10px;
+  }
+  .lec-total-edit input {
+    width: 50px; padding: 4px 6px;
+    font-size: 11px; text-align: center;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: 4px;
+  }
+  .lec-omr-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(40px, 1fr));
+    gap: 6px;
+    max-height: 220px;
+    overflow-y: auto;
+    padding: 4px 2px;
+  }
+  .lec-omr-bubble {
+    aspect-ratio: 1;
+    border-radius: 50%;
+    border: 2px solid var(--border);
+    background: var(--surface);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.15s;
+    user-select: none;
+    min-width: 36px; min-height: 36px;
+  }
+  .lec-omr-bubble:hover { transform: scale(1.1); border-color: var(--accent); color: var(--accent); }
+  .lec-omr-bubble.lec-omr-done { font-weight: 700; box-shadow: 0 0 8px rgba(255,255,255,0.15); }
+  @media (max-width: 900px) {
+    .lec-subjects-grid { grid-template-columns: 1fr 1fr; }
+  }
+  @media (max-width: 600px) {
+    .lec-subjects-grid { grid-template-columns: 1fr; }
+  }
+
+  /* ─── DAILY LOG ───────────────────── */
+  .daily-card { grid-column: span 12; }
+  .daily-form {
+    display: grid;
+    grid-template-columns: 1fr 70px 70px auto;
+    gap: 8px;
+    margin-bottom: 16px;
+    max-width: 560px;
+    align-items: center;
+  }
+  .daily-form input[type="date"] {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    outline: none;
+    transition: border-color 0.2s;
+    width: 100%;
+  }
+  .daily-form input[type="date"]:focus { border-color: var(--accent); }
+  .daily-stats {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+  .daily-stat {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 6px;
+    text-align: center;
+  }
+  .daily-stat-val {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 28px;
+    line-height: 1;
+  }
+  .daily-stat-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 8px;
+    color: var(--muted);
+    letter-spacing: 1px;
+    margin-top: 4px;
+  }
+  .daily-chart-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .daily-chart-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 9px;
+    color: var(--muted);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .daily-chart-hint {
+    text-transform: none;
+    letter-spacing: 0;
+    color: var(--muted);
+    opacity: 0.7;
+    font-size: 8px;
+    margin-left: 4px;
+  }
+  .range-toggle {
+    display: flex;
+    gap: 3px;
+    background: var(--surface2);
+    padding: 3px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+  }
+  .range-btn {
+    background: transparent;
+    border: none;
+    color: var(--muted);
+    padding: 3px 9px;
+    border-radius: 4px;
+    font-family: 'Space Mono', monospace;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .range-btn:hover { color: var(--text); }
+  .range-btn.active { background: var(--accent); color: #000; }
+  .daily-chart-wrap {
+    position: relative;
+    height: 280px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 16px;
+  }
+  .daily-table-wrap {
+    overflow-x: auto;
+    max-height: 240px;
+    overflow-y: auto;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 4px;
+  }
+
+  /* ─── SPLIT MODAL ───────────────────── */
+  .split-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    backdrop-filter: blur(4px);
+    z-index: 9998;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+  .split-modal-overlay.show {
+    display: flex;
+    opacity: 1;
+  }
+  .split-modal-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    max-width: 480px;
+    width: 100%;
+    animation: fadeSlideUp 0.3s ease;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+  }
+  .split-modal-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 28px;
+    letter-spacing: 2px;
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .split-modal-date {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    margin-bottom: 4px;
+  }
+  .split-modal-total {
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    color: var(--accent);
+    margin-bottom: 20px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  .split-row {
+    display: grid;
+    grid-template-columns: 1fr 60px auto 60px auto;
+    gap: 6px;
+    align-items: center;
+    margin-bottom: 12px;
+  }
+  .split-row-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .split-row input {
+    width: 60px;
+    text-align: center;
+    padding: 6px 4px;
+  }
+  .split-row span {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+  }
+  .split-modal-msg {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    color: var(--red);
+    min-height: 14px;
+    margin: 8px 0;
+  }
+  .split-modal-btns {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 4px;
+  }
+
+  .mock-section { grid-column: span 12; }
+  .mock-card { 
+    grid-column: span 12;
+    margin-bottom: 20px;
+  }
+  .mock-card:last-child { margin-bottom: 0; }
+  .mock-form {
+    display: grid;
+    grid-template-columns: 1fr auto auto;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+  input[type="text"], input[type="number"] {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-family: 'Syne', sans-serif;
+    font-size: 13px;
+    outline: none;
+    transition: border-color 0.2s;
+    width: 100%;
+  }
+  input:focus { border-color: var(--accent); }
+  input::placeholder { color: var(--muted); }
+  .btn {
+    background: var(--accent);
+    color: #000;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 12px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s;
+    letter-spacing: 0.5px;
+  }
+  .btn:hover { background: var(--accent2); transform: translateY(-1px); }
+  .btn.danger {
+    background: transparent;
+    border: 1px solid var(--red);
+    color: var(--red);
+    padding: 3px 8px;
+    font-size: 10px;
+  }
+  .btn.danger:hover { background: var(--red); color: #fff; }
+  
+  .mock-content {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+  .mock-table-wrap { 
+    overflow-x: auto; 
+    max-height: 260px; 
+    overflow-y: auto;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 4px;
+  }
+  .mock-chart-wrap { 
+    position: relative; 
+    height: 320px;
+    min-height: 320px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+  }
+  th {
+    font-family: 'Space Mono', monospace;
+    font-size: 9px;
+    color: var(--muted);
+    letter-spacing: 1px;
+    text-align: left;
+    padding: 6px 8px;
+    border-bottom: 1px solid var(--border);
+    position: sticky; top: 0;
+    background: var(--surface);
+    z-index: 1;
+  }
+  td {
+    padding: 6px 8px;
+    border-bottom: 1px solid var(--border);
+    font-size: 12px;
+  }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: var(--surface2); }
+  .score-badge {
+    display: inline-block;
+    padding: 2px 6px;
+    border-radius: 12px;
+    font-family: 'Space Mono', monospace;
+    font-weight: 700;
+    font-size: 11px;
+  }
+  .score-high { background: rgba(80,250,123,0.15); color: var(--green); }
+  .score-mid { background: rgba(240,192,64,0.15); color: var(--accent); }
+  .score-low { background: rgba(255,85,85,0.15); color: var(--red); }
+
+  .chapters-card { grid-column: span 12; }
+  .subjects-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 16px;
+  }
+  .subject-item {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+    transition: border-color 0.2s;
+  }
+  .subject-item:hover { border-color: var(--accent3); }
+  .subject-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+  .subject-name {
+    font-weight: 800;
+    font-size: 14px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .subject-pct {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 24px;
+    line-height: 1;
+  }
+  .progress-track {
+    height: 5px;
+    background: var(--surface);
+    border-radius: 3px;
+    overflow: hidden;
+    margin-bottom: 10px;
+  }
+  .progress-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.4s ease;
+  }
+  .ch-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    max-height: 180px;
+    overflow-y: auto;
+    margin-bottom: 8px;
+    padding-right: 2px;
+  }
+  .ch-row {
+    display: grid;
+    grid-template-columns: 20px 1fr auto;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 8px;
+    border-radius: 5px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    transition: all 0.15s;
+    cursor: pointer;
+  }
+  .ch-row:hover { border-color: var(--accent3); }
+  .ch-row.done { opacity: 0.55; background: rgba(78,205,196,0.06); border-color: var(--accent3); }
+  .ch-row.done .ch-name { text-decoration: line-through; color: var(--muted); }
+  .ch-checkbox {
+    width: 16px; height: 16px;
+    border-radius: 3px;
+    border: 2px solid var(--border);
+    background: transparent;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 8px;
+    color: transparent;
+    flex-shrink: 0;
+    transition: all 0.15s;
+  }
+  .ch-row.done .ch-checkbox {
+    background: var(--accent3);
+    border-color: var(--accent3);
+    color: #000;
+  }
+  .ch-name {
+    font-size: 12px;
+    font-weight: 600;
+    outline: none;
+    background: transparent;
+    border: none;
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    width: 100%;
+    cursor: text;
+  }
+  .ch-name:focus {
+    background: var(--surface2);
+    border-radius: 3px;
+    padding: 1px 4px;
+  }
+  .ch-del {
+    background: transparent;
+    border: none;
+    color: var(--muted);
+    cursor: pointer;
+    font-size: 10px;
+    padding: 2px 3px;
+    border-radius: 3px;
+    transition: all 0.15s;
+    opacity: 0;
+  }
+  .ch-row:hover .ch-del { opacity: 1; }
+  .ch-del:hover { color: var(--red); }
+  .ch-add-row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 6px;
+    margin-top: 4px;
+  }
+  .ch-add-row input { padding: 5px 8px; font-size: 12px; }
+  .ch-add-btn {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 5px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: all 0.15s;
+  }
+  .ch-add-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .ch-stats {
+    font-family: 'Space Mono', monospace;
+    font-size: 9px;
+    color: var(--muted);
+    margin-top: 6px;
+    text-align: right;
+  }
+
+  .section-divider {
+    grid-column: span 12;
+    height: 1px;
+    background: var(--border);
+    position: relative;
+  }
+  .section-divider::before {
+    content: attr(data-label);
+    position: absolute;
+    left: 50%; top: 50%;
+    transform: translate(-50%, -50%);
+    background: var(--bg);
+    padding: 0 16px;
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+  }
+
+  ::-webkit-scrollbar { width: 5px; height: 5px; }
+  ::-webkit-scrollbar-track { background: var(--surface2); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--muted); }
+
+  @media (max-width: 900px) {
+    header { padding: 40px 20px 30px; }
+    main { padding: 0 16px 60px; gap: 14px; }
+    .days-card, .summary-card { grid-column: span 12 !important; }
+    .summary-grid { grid-template-columns: repeat(2, 1fr); }
+    .mock-form { grid-template-columns: 1fr; }
+    .mock-form .btn { width: 100%; }
+    .mock-chart-wrap { height: 260px; min-height: 260px; }
+    .mock-table-wrap { max-height: 220px; }
+    .daily-card { grid-column: span 12; }
+    .daily-chart-wrap { height: 240px; }
+    .daily-stats { grid-template-columns: repeat(5, 1fr); }
+  }
+  @media (max-width: 600px) {
+    .summary-grid { grid-template-columns: 1fr 1fr; }
+    .top-bar { flex-direction: column; gap: 12px; }
+    .mock-chart-wrap { height: 220px; min-height: 220px; padding: 6px; }
+    .daily-form { grid-template-columns: 1fr 1fr 1fr; max-width: 100%; }
+    .daily-form input[type="date"] { grid-column: span 3; }
+    .daily-stats { grid-template-columns: repeat(3, 1fr); }
+    .daily-stat-val { font-size: 22px; }
+    .daily-chart-wrap { height: 200px; padding: 6px; }
+    .daily-chart-header { justify-content: flex-start; }
+    .range-btn { padding: 3px 7px; font-size: 8px; }
+    .split-row { grid-template-columns: 1fr 1fr 1fr; }
+    .split-row-label { grid-column: span 3; }
+    .split-row span { display: none; }
+  }
+
+  .improve-badge {
+    display: inline-flex; align-items: center; gap: 3px;
+    font-family: 'Space Mono', monospace;
+    font-size: 10px; font-weight: 700;
+    padding: 2px 6px; border-radius: 8px;
+  }
+  .improve-up   { background: rgba(80,250,123,0.15); color: var(--green); }
+  .improve-down { background: rgba(255,85,85,0.15);  color: var(--red); }
+  .improve-same { background: rgba(107,107,138,0.15); color: var(--muted); }
+
+  .cd-edit-btn {
+    margin-top: 12px;
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    padding: 5px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 1px;
+    transition: all 0.2s;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .cd-edit-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .cd-edit-row {
+    margin-top: 12px;
+    display: flex; flex-direction: column; gap: 6px;
+  }
+  .cd-edit-row input[type="date"] {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    outline: none;
+    width: 100%;
+    transition: border-color 0.2s;
+  }
+  .cd-edit-row input[type="date"]:focus { border-color: var(--accent); }
+
+  .empty-state {
+    text-align: center;
+    padding: 20px;
+    color: var(--muted);
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+  }
+
+  #toast {
+    position: fixed;
+    bottom: 30px; right: 30px;
+    background: var(--accent);
+    color: #000;
+    padding: 10px 18px;
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 12px;
+    transform: translateY(80px);
+    opacity: 0;
+    transition: all 0.3s;
+    z-index: 10000;
+    font-family: 'Syne', sans-serif;
+  }
+  #toast.show { transform: translateY(0); opacity: 1; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="top-bar">
+    <span class="logo-tag">JEE 2028</span>
+    <button class="theme-toggle" onclick="toggleTheme()">
+      <i class="fa-solid fa-circle-half-stroke"></i> Toggle Theme
+    </button>
+  </div>
+  <h1 class="main-title">TARGET JEE 2028</h1>
+  <p class="subtitle">// TRACK · GRIND · CONQUER</p>
+</header>
+
+<main>
+  <!-- DAYS LEFT -->
+  <div class="card days-card">
+    <div class="card-title"><i class="fa-solid fa-hourglass-half"></i> Countdown</div>
+    <div class="days-big" id="daysLeft">---</div>
+    <div class="days-label" id="daysLabel">DAYS REMAINING</div>
+    <div class="motivation" id="motivationMsg">Stay consistent!</div>
+    <div class="countdown-progress" style="margin-top:16px">
+      <div class="countdown-bar" id="countdownBar" style="width:0%"></div>
+    </div>
+    <div style="margin-top:12px;display:flex;align-items:flex-end;gap:8px">
+      <div id="prepPctBig" style="font-family:'Bebas Neue',sans-serif;font-size:56px;line-height:1;color:var(--accent2)">0%</div>
+      <div style="font-family:'Space Mono',monospace;font-size:9px;color:var(--muted);padding-bottom:8px;letter-spacing:1px">PREP TIME<br>ELAPSED</div>
+    </div>
+    <div style="font-size:10px;color:var(--muted);margin-top:4px;font-family:'Space Mono',monospace" id="dateInfo"></div>
+    <div class="cd-edit-row" id="cdEditRow" style="display:none">
+      <input type="date" id="cdTargetInput" />
+      <input type="date" id="cdStartInput" />
+      <button class="btn" style="font-size:11px;padding:6px 12px" onclick="saveCountdownDates()"><i class="fa-solid fa-check"></i> Save</button>
+      <button class="btn" style="font-size:11px;padding:6px 12px;background:transparent;border:1px solid var(--border);color:var(--muted)" onclick="toggleCdEdit()">Cancel</button>
+    </div>
+    <button class="cd-edit-btn" onclick="toggleCdEdit()" id="cdEditBtn">
+      <i class="fa-solid fa-pen"></i> Edit Dates
+    </button>
+  </div>
+
+  <!-- DASHBOARD SUMMARY -->
+  <div class="card summary-card">
+    <div class="card-title"><i class="fa-solid fa-chart-bar"></i> Dashboard Summary</div>
+    <div class="summary-grid">
+      <div class="stat-box">
+        <div class="stat-val" id="mockCount" style="color:var(--purple)">0</div>
+        <div class="stat-label">TOTAL MOCKS</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-val" id="avgMainsScore" style="color:var(--accent3)">–</div>
+        <div class="stat-label">AVG MAINS SCORE</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-val" id="avgAdvScore" style="color:var(--purple)">–</div>
+        <div class="stat-label">AVG ADV SCORE</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-val" id="highScore" style="color:var(--accent)">–</div>
+        <div class="stat-label">HIGHEST MAINS</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-val" id="highAdvScore" style="color:var(--purple)">–</div>
+        <div class="stat-label">HIGHEST ADV</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-val" id="lecCompletionPct" style="color:var(--blue)">0%</div>
+        <div class="stat-label">LECTURE COMPLETION</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-val" id="overallPct">0%</div>
+        <div class="stat-label">CHAPTERS DONE</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-val" id="lecDoneSummary" style="color:var(--blue)">0</div>
+        <div class="stat-label">LECTURES DONE</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-val" id="lecPendingSummary" style="color:var(--accent2)">0</div>
+        <div class="stat-label">LECTURES PENDING</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-divider" style="grid-column:span 12" data-label="lecture completion"></div>
+
+  <!-- LECTURE COMPLETION -->
+  <div class="lec-section">
+    <div class="card" style="grid-column:span 12">
+      <div class="card-title"><i class="fa-solid fa-chalkboard-user" style="color:var(--blue)"></i> <span style="color:var(--blue)">Lecture Completion</span>
+        <span style="margin-left:auto;font-size:10px;color:var(--muted)" id="lecTotalSummary"></span>
+      </div>
+      <div class="lec-subjects-grid" id="lecSubjectsGrid"></div>
+    </div>
+  </div>
+
+  <div class="section-divider" style="grid-column:span 12" data-label="daily log — study & skills/exercise"></div>
+
+  <!-- DAILY LOG: STUDY (top) -->
+  <div class="card daily-card">
+    <div class="card-title" style="color:#4ecdc4"><i class="fa-solid fa-book-open-reader"></i> Study Hours</div>
+    <div class="daily-form">
+      <input type="date" id="studyDateInput" />
+      <input type="number" id="studyHoursInput" placeholder="HH" min="0" max="24" />
+      <input type="number" id="studyMinutesInput" placeholder="MM" min="0" max="59" />
+      <button class="btn" style="background:#4ecdc4" onclick="addDailyLog('study')"><i class="fa-solid fa-plus"></i> Log</button>
+    </div>
+    <div class="daily-stats">
+      <div class="daily-stat">
+        <div class="daily-stat-val" id="studyTotal" style="color:#4ecdc4">0</div>
+        <div class="daily-stat-label">TOTAL HRS</div>
+      </div>
+      <div class="daily-stat">
+        <div class="daily-stat-val" id="studyToday" style="color:#4ecdc4">0</div>
+        <div class="daily-stat-label">TODAY</div>
+      </div>
+      <div class="daily-stat">
+        <div class="daily-stat-val" id="study7dAvg" style="color:#4ecdc4">0</div>
+        <div class="daily-stat-label">7-DAY AVG</div>
+      </div>
+      <div class="daily-stat">
+        <div class="daily-stat-val" id="studyAvg" style="color:#4ecdc4">0</div>
+        <div class="daily-stat-label">AVG / DAY</div>
+      </div>
+      <div class="daily-stat">
+        <div class="daily-stat-val" id="studyDays" style="color:#4ecdc4">0</div>
+        <div class="daily-stat-label">DAYS LOGGED</div>
+      </div>
+    </div>
+    <div class="daily-chart-header">
+      <div class="daily-chart-label">
+        <i class="fa-solid fa-chart-simple"></i> Daily hours
+        <span class="daily-chart-hint">(click a bar to split into Lecture / Self Study)</span>
+      </div>
+      <div class="range-toggle" data-type="study">
+        <button class="range-btn" data-range="7"  onclick="setDailyRange('study',7)">7D</button>
+        <button class="range-btn active" data-range="30" onclick="setDailyRange('study',30)">30D</button>
+        <button class="range-btn" data-range="90" onclick="setDailyRange('study',90)">90D</button>
+        <button class="range-btn" data-range="0"  onclick="setDailyRange('study',0)">All</button>
+      </div>
+    </div>
+    <div class="daily-chart-wrap">
+      <canvas id="studyChart"></canvas>
+    </div>
+    <div class="daily-table-wrap">
+      <table>
+        <thead><tr><th>DATE</th><th>HOURS</th><th></th></tr></thead>
+        <tbody id="studyTableBody"></tbody>
+      </table>
+      <div class="empty-state" id="studyEmpty">No study hours logged yet. Add your first entry!</div>
+    </div>
+  </div>
+
+  <!-- DAILY LOG: SKILLS / EXERCISE (below) -->
+  <div class="card daily-card">
+    <div class="card-title" style="color:#ff6b35"><i class="fa-solid fa-dumbbell"></i> Skills / Exercise Hours</div>
+    <div class="daily-form">
+      <input type="date" id="skillsDateInput" />
+      <input type="number" id="skillsHoursInput" placeholder="HH" min="0" max="24" />
+      <input type="number" id="skillsMinutesInput" placeholder="MM" min="0" max="59" />
+      <button class="btn" style="background:#ff6b35" onclick="addDailyLog('skills')"><i class="fa-solid fa-plus"></i> Log</button>
+    </div>
+    <div class="daily-stats">
+      <div class="daily-stat">
+        <div class="daily-stat-val" id="skillsTotal" style="color:#ff6b35">0</div>
+        <div class="daily-stat-label">TOTAL HRS</div>
+      </div>
+      <div class="daily-stat">
+        <div class="daily-stat-val" id="skillsToday" style="color:#ff6b35">0</div>
+        <div class="daily-stat-label">TODAY</div>
+      </div>
+      <div class="daily-stat">
+        <div class="daily-stat-val" id="skills7dAvg" style="color:#ff6b35">0</div>
+        <div class="daily-stat-label">7-DAY AVG</div>
+      </div>
+      <div class="daily-stat">
+        <div class="daily-stat-val" id="skillsAvg" style="color:#ff6b35">0</div>
+        <div class="daily-stat-label">AVG / DAY</div>
+      </div>
+      <div class="daily-stat">
+        <div class="daily-stat-val" id="skillsDays" style="color:#ff6b35">0</div>
+        <div class="daily-stat-label">DAYS LOGGED</div>
+      </div>
+    </div>
+    <div class="daily-chart-header">
+      <div class="daily-chart-label"><i class="fa-solid fa-chart-simple"></i> Daily hours</div>
+      <div class="range-toggle" data-type="skills">
+        <button class="range-btn" data-range="7"  onclick="setDailyRange('skills',7)">7D</button>
+        <button class="range-btn active" data-range="30" onclick="setDailyRange('skills',30)">30D</button>
+        <button class="range-btn" data-range="90" onclick="setDailyRange('skills',90)">90D</button>
+        <button class="range-btn" data-range="0"  onclick="setDailyRange('skills',0)">All</button>
+      </div>
+    </div>
+    <div class="daily-chart-wrap">
+      <canvas id="skillsChart"></canvas>
+    </div>
+    <div class="daily-table-wrap">
+      <table>
+        <thead><tr><th>DATE</th><th>HOURS</th><th></th></tr></thead>
+        <tbody id="skillsTableBody"></tbody>
+      </table>
+      <div class="empty-state" id="skillsEmpty">No skills/exercise hours logged yet. Add your first entry!</div>
+    </div>
+  </div>
+
+  <!-- DAILY LOG: COMBINED -->
+  <div class="card daily-card">
+    <div class="card-title" style="color:#bd93f9"><i class="fa-solid fa-layer-group"></i> All Day Hours (Study + Skills)</div>
+    <div class="daily-stats">
+      <div class="daily-stat">
+        <div class="daily-stat-val" id="combinedTotal" style="color:#bd93f9">0</div>
+        <div class="daily-stat-label">TOTAL HRS</div>
+      </div>
+      <div class="daily-stat">
+        <div class="daily-stat-val" id="combinedToday" style="color:#bd93f9">0</div>
+        <div class="daily-stat-label">TODAY</div>
+      </div>
+      <div class="daily-stat">
+        <div class="daily-stat-val" id="combined7dAvg" style="color:#bd93f9">0</div>
+        <div class="daily-stat-label">7-DAY AVG</div>
+      </div>
+      <div class="daily-stat">
+        <div class="daily-stat-val" id="combinedAvg" style="color:#bd93f9">0</div>
+        <div class="daily-stat-label">AVG / DAY</div>
+      </div>
+      <div class="daily-stat">
+        <div class="daily-stat-val" id="combinedDays" style="color:#bd93f9">0</div>
+        <div class="daily-stat-label">DAYS LOGGED</div>
+      </div>
+    </div>
+    <div class="daily-chart-header">
+      <div class="daily-chart-label"><i class="fa-solid fa-chart-simple"></i> Combined daily hours</div>
+      <div class="range-toggle" data-type="combined">
+        <button class="range-btn" data-range="7"  onclick="setDailyRange('combined',7)">7D</button>
+        <button class="range-btn active" data-range="30" onclick="setDailyRange('combined',30)">30D</button>
+        <button class="range-btn" data-range="90" onclick="setDailyRange('combined',90)">90D</button>
+        <button class="range-btn" data-range="0"  onclick="setDailyRange('combined',0)">All</button>
+      </div>
+    </div>
+    <div class="daily-chart-wrap">
+      <canvas id="combinedChart"></canvas>
+    </div>
+    <div class="daily-table-wrap">
+      <table>
+        <thead><tr><th>DATE</th><th>STUDY</th><th>SKILLS</th><th>TOTAL</th></tr></thead>
+        <tbody id="combinedTableBody"></tbody>
+      </table>
+      <div class="empty-state" id="combinedEmpty">No hours logged yet. Add entries in Study or Skills above!</div>
+    </div>
+  </div>
+
+  <div class="section-divider" style="grid-column:span 12" data-label="mock tests — mains & advanced"></div>
+
+  <!-- MOCK TESTS SECTION -->
+  <div class="mock-section">
+    <div class="card mock-card">
+      <div class="card-title" style="color:#8be9fd"><i class="fa-solid fa-clipboard-list"></i> Mains Mock Test</div>
+      <div class="mock-form">
+        <input type="text" id="mainsMockName" placeholder="Test name" />
+        <input type="number" id="mainsMockMarks" placeholder="Score /300" min="0" max="300" style="width:100px"/>
+        <button class="btn" style="background:#8be9fd" onclick="addMockType('mains')"><i class="fa-solid fa-plus"></i> Add Score</button>
+      </div>
+      <div class="mock-content">
+        <div class="mock-table-wrap">
+          <table>
+            <thead><tr><th>DATE</th><th>TEST NAME</th><th>MARKS</th><th>%</th><th>IMPROVEMENT</th><th></th></tr></thead>
+            <tbody id="mainsMockTableBody"></tbody>
+          </table>
+          <div class="empty-state" id="mainsMockEmpty">No Mains mock scores yet. Add your first test!</div>
+        </div>
+        <div class="mock-chart-wrap">
+          <canvas id="mainsMarksChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <div class="card mock-card">
+      <div class="card-title" style="color:#bd93f9"><i class="fa-solid fa-star"></i> Advanced Mock Test</div>
+      <div class="mock-form">
+        <input type="text" id="advMockName" placeholder="Test name" />
+        <input type="number" id="advMockMarks" placeholder="Score /180" min="0" max="180" style="width:100px"/>
+        <button class="btn" style="background:#bd93f9" onclick="addMockType('adv')"><i class="fa-solid fa-plus"></i> Add Score</button>
+      </div>
+      <div class="mock-content">
+        <div class="mock-table-wrap">
+          <table>
+            <thead><tr><th>DATE</th><th>TEST NAME</th><th>MARKS</th><th>%</th><th>IMPROVEMENT</th><th></th></tr></thead>
+            <tbody id="advMockTableBody"></tbody>
+          </table>
+          <div class="empty-state" id="advMockEmpty">No Advanced mock scores yet. Add your first test!</div>
+        </div>
+        <div class="mock-chart-wrap">
+          <canvas id="advMarksChart"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-divider" style="grid-column:span 12" data-label="chapter progress"></div>
+
+  <div class="card chapters-card">
+    <div class="card-title"><i class="fa-solid fa-book-open"></i> Chapter Completion Tracker</div>
+    <div class="subjects-grid" id="subjectsGrid"></div>
+  </div>
+
+</main>
+
+<!-- SPLIT MODAL -->
+<div class="split-modal-overlay" id="splitModal" onclick="if(event.target===this)closeSplitModal()">
+  <div class="split-modal-box">
+    <div class="split-modal-title"><i class="fa-solid fa-scissors"></i> Split Study Time</div>
+    <div class="split-modal-date" id="splitDateLabel"></div>
+    <div class="split-modal-total" id="splitTotalLabel"></div>
+
+    <div class="split-row">
+      <div class="split-row-label" style="color:#ff79c6">
+        <i class="fa-solid fa-chalkboard-user"></i> Lecture
+      </div>
+      <input type="number" id="splitLecH" min="0" max="24" placeholder="0">
+      <span>h</span>
+      <input type="number" id="splitLecM" min="0" max="59" placeholder="0">
+      <span>m</span>
+    </div>
+
+    <div class="split-row">
+      <div class="split-row-label" style="color:#a3e635">
+        <i class="fa-solid fa-book-open-reader"></i> Self Study
+      </div>
+      <input type="number" id="splitSelfH" min="0" max="24" placeholder="0">
+      <span>h</span>
+      <input type="number" id="splitSelfM" min="0" max="59" placeholder="0">
+      <span>m</span>
+    </div>
+
+    <div class="split-modal-msg" id="splitMsg"></div>
+
+    <div class="split-modal-btns">
+      <button class="btn" onclick="saveSplit()"><i class="fa-solid fa-check"></i> Save Split</button>
+      <button class="btn" style="background:transparent;border:1px solid var(--border);color:var(--muted)" onclick="closeSplitModal()">Cancel</button>
+      <button class="btn" style="background:transparent;border:1px solid var(--red);color:var(--red);margin-left:auto" onclick="clearSplit()">Clear Split</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ─── UNIQUE SPLIT COLORS (only used here) ─────────────────────────────────────
+const LECTURE_COLOR = '#ff79c6';   // pink — unique to lecture split
+const SELF_COLOR    = '#a3e635';   // lime — unique to self-study split
+
+// ─── SUBJECTS CONFIG ───────────────────────────────────────────────────────────
+const SUBJECTS = [
+  { id:'maths',    name:'Mathematics',        color:'#f0c040', icon:'fa-square-root-variable', defaultTotal:20 },
+  { id:'physics',  name:'Physics',            color:'#4ecdc4', icon:'fa-atom',                defaultTotal:18 },
+  { id:'orgchem',  name:'Organic Chemistry',  color:'#ff6b35', icon:'fa-flask',               defaultTotal:15 },
+  { id:'inorgchem',name:'Inorganic Chemistry',color:'#bd93f9', icon:'fa-vial',                defaultTotal:12 },
+  { id:'physchem', name:'Physical Chemistry', color:'#50fa7b', icon:'fa-fire-flame-curved',   defaultTotal:14 }
+];
+
+const LEC_SUBJECTS = [
+  { id:'lec_maths',    name:'Mathematics',         icon:'fa-square-root-variable', color:'#f0c040' },
+  { id:'lec_physics',  name:'Physics',              icon:'fa-atom',                color:'#4ecdc4' },
+  { id:'lec_orgchem',  name:'Organic Chemistry',    icon:'fa-flask',               color:'#ff6b35' },
+  { id:'lec_inorgchem',name:'Inorganic Chemistry',  icon:'fa-vial',                color:'#bd93f9' },
+  { id:'lec_physchem', name:'Physical Chemistry',   icon:'fa-fire-flame-curved',   color:'#50fa7b' }
+];
+
+const MOTIVATIONS = [
+  "Stay consistent! Small steps daily.", "Every hour counts. Keep pushing!",
+  "Toppers were once beginners too.", "Discipline beats motivation every time.",
+  "You're one decision away from changing everything.", "Hard work silently does the work.",
+  "Dream. Plan. Execute. Repeat.", "The grind is real. So is the reward.",
+  "Consistency is the key to JEE.", "No shortcuts. Only smart work + hard work."
+];
+
+// ─── DATA HELPERS ──────────────────────────────────────────────────────────────
+const save = (k,v) => localStorage.setItem(k, JSON.stringify(v));
+const load = (k, def) => { try { const v=localStorage.getItem(k); return v?JSON.parse(v):def; } catch { return def; } };
+
+// ─── TIME FORMATTERS (h + m) ──────────────────────────────────────────────────
+function decimalToHM(d) {
+  const h = Math.floor(d);
+  const m = Math.round((d - h) * 60);
+  return { h, m };
+}
+function fmtHM(d) {
+  if(!d || d < 0.0084) return '0m';   // less than ~30s
+  const { h, m } = decimalToHM(d);
+  if(h === 0) return `${m}m`;
+  if(m === 0) return `${h}h`;
+  return `${h}h ${m}m`;
+}
+function hmToDecimal(h, m) {
+  return (parseInt(h)||0) + (parseInt(m)||0) / 60;
+}
+
+// ─── COUNTDOWN ────────────────────────────────────────────────────────────────
+function initCountdown() {
+  const targetStr = load('cd_target', '2028-01-01');
+  const startStr  = load('cd_start',  '2026-04-01');
+  const target = new Date(targetStr + 'T00:00:00');
+  const start  = new Date(startStr  + 'T00:00:00');
+  const now    = new Date();
+  const diff   = Math.ceil((target - now) / (1000*60*60*24));
+  const total  = Math.ceil((target - start) / (1000*60*60*24));
+  const elapsed= Math.ceil((now - start) / (1000*60*60*24));
+  const pct    = Math.min(100, Math.max(0, (elapsed/total)*100));
+  document.getElementById('daysLeft').textContent = diff > 0 ? diff : 0;
+  document.getElementById('daysLabel').textContent = diff > 0 ? 'DAYS REMAINING' : 'EXAM DAY REACHED!';
+  document.getElementById('countdownBar').style.width = pct + '%';
+  document.getElementById('prepPctBig').textContent = pct.toFixed(1) + '%';
+  const fmt = d => d.toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'});
+  document.getElementById('dateInfo').textContent = `Target: ${fmt(target)} · Prep started: ${fmt(start)}`;
+  const idx = Math.floor(Math.random() * MOTIVATIONS.length);
+  document.getElementById('motivationMsg').textContent = MOTIVATIONS[idx];
+}
+
+function toggleCdEdit() {
+  const row = document.getElementById('cdEditRow');
+  const btn = document.getElementById('cdEditBtn');
+  const open = row.style.display === 'none' || row.style.display === '';
+  if(open) {
+    document.getElementById('cdTargetInput').value = load('cd_target','2028-01-01');
+    document.getElementById('cdStartInput').value  = load('cd_start', '2026-04-01');
+    row.style.display = 'flex';
+    btn.style.display = 'none';
+  } else {
+    row.style.display = 'none';
+    btn.style.display = 'flex';
+  }
+}
+
+function saveCountdownDates() {
+  const target = document.getElementById('cdTargetInput').value;
+  const start  = document.getElementById('cdStartInput').value;
+  if(!target || !start) { showToast('Please fill both dates!'); return; }
+  if(new Date(start) >= new Date(target)) { showToast('Start date must be before target!'); return; }
+  save('cd_target', target);
+  save('cd_start',  start);
+  document.getElementById('cdEditRow').style.display = 'none';
+  document.getElementById('cdEditBtn').style.display = 'flex';
+  initCountdown();
+  showToast('Countdown updated!');
+}
+
+// ─── DAILY LOG (STUDY / SKILLS / COMBINED) ───────────────────────────────────
+let studyChart = null;
+let skillsChart = null;
+let combinedChart = null;
+
+const DAILY_CONFIG = {
+  study: {
+    storageKey: 'daily_study',
+    dateId:     'studyDateInput',
+    hoursId:    'studyHoursInput',
+    minutesId:  'studyMinutesInput',
+    tableId:    'studyTableBody',
+    emptyId:    'studyEmpty',
+    chartId:    'studyChart',
+    color:      '#4ecdc4',
+    totalId:    'studyTotal',
+    todayId:    'studyToday',
+    avg7Id:     'study7dAvg',
+    avgId:      'studyAvg',
+    daysId:     'studyDays',
+    range:      30,
+    chartRef:   () => studyChart,
+    setChart:   (c) => { studyChart = c; }
+  },
+  skills: {
+    storageKey: 'daily_skills',
+    dateId:     'skillsDateInput',
+    hoursId:    'skillsHoursInput',
+    minutesId:  'skillsMinutesInput',
+    tableId:    'skillsTableBody',
+    emptyId:    'skillsEmpty',
+    chartId:    'skillsChart',
+    color:      '#ff6b35',
+    totalId:    'skillsTotal',
+    todayId:    'skillsToday',
+    avg7Id:     'skills7dAvg',
+    avgId:      'skillsAvg',
+    daysId:     'skillsDays',
+    range:      30,
+    chartRef:   () => skillsChart,
+    setChart:   (c) => { skillsChart = c; }
+  },
+  combined: {
+    tableId:    'combinedTableBody',
+    emptyId:    'combinedEmpty',
+    chartId:    'combinedChart',
+    color:      '#bd93f9',
+    totalId:    'combinedTotal',
+    todayId:    'combinedToday',
+    avg7Id:     'combined7dAvg',
+    avgId:      'combinedAvg',
+    daysId:     'combinedDays',
+    range:      30,
+    chartRef:   () => combinedChart,
+    setChart:   (c) => { combinedChart = c; }
+  }
+};
+
+function setDailyRange(type, days) {
+  const cfg = DAILY_CONFIG[type];
+  cfg.range = days;
+  save('range_' + type, days);
+  renderDaily(type);
+}
+
+function addDailyLog(type) {
+  const cfg   = DAILY_CONFIG[type];
+  const date  = document.getElementById(cfg.dateId).value;
+  const h     = parseInt(document.getElementById(cfg.hoursId).value) || 0;
+  const m     = parseInt(document.getElementById(cfg.minutesId).value) || 0;
+  if(!date) { showToast('Pick a date!'); return; }
+  if(m > 59) { showToast('Minutes must be 0–59!'); return; }
+  const hours = h + m/60;
+  if(hours < 0) { showToast('Enter valid hours!'); return; }
+  if(hours > 24) { showToast('Hours cannot exceed 24!'); return; }
+  if(hours === 0) { showToast('Enter at least 1 minute!'); return; }
+
+  let logs = load(cfg.storageKey, []);
+  const idx = logs.findIndex(l => l.date === date);
+  if(idx > -1) {
+    const oldHours = logs[idx].hours;
+    logs[idx].hours = +hours.toFixed(2);
+    if(Math.abs(oldHours - hours) > 0.008) {
+      delete logs[idx].lecture;
+      delete logs[idx].selfStudy;
+    }
+  } else {
+    logs.push({ date, hours: +hours.toFixed(2) });
+  }
+  save(cfg.storageKey, logs);
+  document.getElementById(cfg.hoursId).value = '';
+  document.getElementById(cfg.minutesId).value = '';
+  renderDaily(type);
+  renderDaily('combined');
+  showToast(idx > -1 ? 'Updated!' : 'Logged!');
+}
+
+function deleteDaily(type, date) {
+  const cfg = DAILY_CONFIG[type];
+  let logs = load(cfg.storageKey, []);
+  logs = logs.filter(l => l.date !== date);
+  save(cfg.storageKey, logs);
+  renderDaily(type);
+  renderDaily('combined');
+  showToast('Deleted.');
+}
+
+function getCombinedLogs() {
+  const study  = load('daily_study',  []);
+  const skills = load('daily_skills', []);
+  const map = {};
+  study.forEach(l => {
+    if(!map[l.date]) map[l.date] = { date: l.date, study: 0, skills: 0 };
+    map[l.date].study = l.hours;
+  });
+  skills.forEach(l => {
+    if(!map[l.date]) map[l.date] = { date: l.date, study: 0, skills: 0 };
+    map[l.date].skills = l.hours;
+  });
+  return Object.values(map)
+    .map(m => ({ ...m, hours: +(m.study + m.skills).toFixed(2) }))
+    .sort((a,b) => a.date.localeCompare(b.date));
+}
+
+function renderDaily(type) {
+  if(type === 'combined') { renderCombined(); return; }
+  const cfg  = DAILY_CONFIG[type];
+  const logs = load(cfg.storageKey, []);
+  const sorted = [...logs].sort((a,b) => a.date.localeCompare(b.date));
+
+  const tbody = document.getElementById(cfg.tableId);
+  const empty = document.getElementById(cfg.emptyId);
+  tbody.innerHTML = '';
+  empty.style.display = sorted.length ? 'none' : 'block';
+  [...sorted].reverse().forEach(log => {
+    const d = new Date(log.date + 'T00:00:00');
+    const pretty = d.toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' });
+    const split = (log.lecture != null && log.selfStudy != null)
+      ? `<div style="font-size:9px;font-family:'Space Mono',monospace;margin-top:3px;color:var(--muted)">
+           <span style="color:${LECTURE_COLOR}">L: ${fmtHM(log.lecture)}</span> ·
+           <span style="color:${SELF_COLOR}">S: ${fmtHM(log.selfStudy)}</span>
+         </div>` : '';
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td style="font-family:'Space Mono',monospace;font-size:10px;color:var(--muted)">${pretty}</td>
+      <td>
+        <span class="score-badge" style="background:${cfg.color}22;color:${cfg.color}">${fmtHM(log.hours)}</span>
+        ${split}
+      </td>
+      <td><button class="btn danger" onclick="deleteDaily('${type}','${log.date}')"><i class="fa-solid fa-trash-can"></i></button></td>`;
+    tbody.appendChild(tr);
+  });
+
+  const today = new Date().toISOString().split('T')[0];
+  const todayHours = logs.find(l => l.date === today)?.hours || 0;
+  const total = logs.reduce((s, l) => s + l.hours, 0);
+  const days  = logs.length;
+  const avg   = days > 0 ? (total / days) : 0;
+
+  const cutoff7 = new Date();
+  cutoff7.setDate(cutoff7.getDate() - 6);
+  cutoff7.setHours(0,0,0,0);
+  const sum7 = logs
+    .filter(l => new Date(l.date + 'T00:00:00') >= cutoff7)
+    .reduce((s, l) => s + l.hours, 0);
+  const avg7 = sum7 / 7;
+
+  document.getElementById(cfg.totalId).textContent = fmtHM(total);
+  document.getElementById(cfg.todayId).textContent = fmtHM(todayHours);
+  document.getElementById(cfg.avg7Id).textContent  = fmtHM(avg7);
+  document.getElementById(cfg.avgId).textContent   = fmtHM(avg);
+  document.getElementById(cfg.daysId).textContent  = days;
+
+  document.querySelectorAll(`.range-toggle[data-type="${type}"] .range-btn`).forEach(btn => {
+    btn.classList.toggle('active', parseInt(btn.dataset.range) === cfg.range);
+  });
+
+  renderDailyChart(type, sorted);
+}
+
+function renderCombined() {
+  const cfg = DAILY_CONFIG.combined;
+  const logs = getCombinedLogs();
+
+  const tbody = document.getElementById(cfg.tableId);
+  const empty = document.getElementById(cfg.emptyId);
+  tbody.innerHTML = '';
+  empty.style.display = logs.length ? 'none' : 'block';
+  [...logs].reverse().forEach(log => {
+    const d = new Date(log.date + 'T00:00:00');
+    const pretty = d.toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' });
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td style="font-family:'Space Mono',monospace;font-size:10px;color:var(--muted)">${pretty}</td>
+      <td><span class="score-badge" style="background:#4ecdc422;color:#4ecdc4">${fmtHM(log.study)}</span></td>
+      <td><span class="score-badge" style="background:#ff6b3522;color:#ff6b35">${fmtHM(log.skills)}</span></td>
+      <td><span class="score-badge" style="background:#bd93f922;color:#bd93f9">${fmtHM(log.hours)}</span></td>`;
+    tbody.appendChild(tr);
+  });
+
+  const today = new Date().toISOString().split('T')[0];
+  const todayHours = logs.find(l => l.date === today)?.hours || 0;
+  const total = logs.reduce((s, l) => s + l.hours, 0);
+  const days  = logs.length;
+  const avg   = days > 0 ? (total / days) : 0;
+
+  const cutoff7 = new Date();
+  cutoff7.setDate(cutoff7.getDate() - 6);
+  cutoff7.setHours(0,0,0,0);
+  const sum7 = logs
+    .filter(l => new Date(l.date + 'T00:00:00') >= cutoff7)
+    .reduce((s, l) => s + l.hours, 0);
+  const avg7 = sum7 / 7;
+
+  document.getElementById(cfg.totalId).textContent = fmtHM(total);
+  document.getElementById(cfg.todayId).textContent = fmtHM(todayHours);
+  document.getElementById(cfg.avg7Id).textContent  = fmtHM(avg7);
+  document.getElementById(cfg.avgId).textContent   = fmtHM(avg);
+  document.getElementById(cfg.daysId).textContent  = days;
+
+  document.querySelectorAll(`.range-toggle[data-type="combined"] .range-btn`).forEach(btn => {
+    btn.classList.toggle('active', parseInt(btn.dataset.range) === cfg.range);
+  });
+
+  renderDailyChart('combined', logs);
+}
+
+function renderDailyChart(type, logs) {
+  const cfg = DAILY_CONFIG[type];
+  const ctx = document.getElementById(cfg.chartId).getContext('2d');
+
+  let filtered = logs;
+  if (cfg.range > 0) {
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - (cfg.range - 1));
+    cutoff.setHours(0,0,0,0);
+    filtered = logs.filter(l => new Date(l.date + 'T00:00:00') >= cutoff);
+  }
+
+  const labels = filtered.map(l => {
+    const d = new Date(l.date + 'T00:00:00');
+    return d.toLocaleDateString('en-IN', { day:'numeric', month:'short' });
+  });
+
+  const isStudy = (type === 'study');
+  let datasets;
+
+  if(isStudy) {
+    const lectureData   = filtered.map(l => l.lecture   || 0);
+    const selfData      = filtered.map(l => l.selfStudy || 0);
+    const unassignedData= filtered.map(l => Math.max(0, l.hours - (l.lecture||0) - (l.selfStudy||0)));
+
+    datasets = [
+      {
+        label: 'Lecture',
+        data: lectureData,
+        backgroundColor: LECTURE_COLOR,
+        borderColor: LECTURE_COLOR,
+        borderWidth: 0,
+        stack: 'study',
+        maxBarThickness: 40,
+        borderRadius: { topLeft: 0, topRight: 0, bottomLeft: 5, bottomRight: 5 }
+      },
+      {
+        label: 'Self Study',
+        data: selfData,
+        backgroundColor: SELF_COLOR,
+        borderColor: SELF_COLOR,
+        borderWidth: 0,
+        stack: 'study',
+        maxBarThickness: 40
+      },
+      {
+        label: 'Unassigned',
+        data: unassignedData,
+        backgroundColor: cfg.color + 'aa',
+        borderColor: cfg.color,
+        borderWidth: 1,
+        stack: 'study',
+        maxBarThickness: 40,
+        borderRadius: { topLeft: 5, topRight: 5, bottomLeft: 0, bottomRight: 0 }
+      }
+    ];
+  } else {
+    datasets = [{
+      label: 'Hours',
+      data: filtered.map(l => l.hours),
+      backgroundColor: cfg.color + '99',
+      borderColor: cfg.color,
+      borderWidth: 1,
+      borderRadius: 5,
+      maxBarThickness: 34
+    }];
+  }
+
+  const prev = cfg.chartRef();
+  if(prev) prev.destroy();
+
+  const chart = new Chart(ctx, {
+    type: 'bar',
+    data: { labels, datasets },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      onClick: isStudy ? (e, elements) => {
+        if(elements.length > 0) {
+          const idx = elements[0].index;
+          if(filtered[idx]) openSplitModal(filtered[idx].date);
+        }
+      } : undefined,
+      onHover: isStudy ? (e, elements) => {
+        e.native.target.style.cursor = elements.length > 0 ? 'pointer' : 'default';
+      } : undefined,
+      plugins: {
+        legend: isStudy ? {
+          display: true,
+          position: 'bottom',
+          labels: {
+            color: '#8a8a9a',
+            font: { family: 'Space Mono', size: 9 },
+            boxWidth: 12,
+            boxHeight: 12,
+            padding: 12
+          }
+        } : { display: false },
+        tooltip: {
+          backgroundColor: '#1c1c28',
+          borderColor: cfg.color,
+          borderWidth: 1,
+          titleColor: cfg.color,
+          bodyColor: '#e8e8f0',
+          padding: 8,
+          callbacks: {
+            title: (items) => {
+              const l = filtered[items[0].dataIndex];
+              if(isStudy) {
+                const d = new Date(l.date + 'T00:00:00');
+                return d.toLocaleDateString('en-IN', { weekday:'short', day:'numeric', month:'short', year:'numeric' });
+              }
+              return l.date;
+            },
+            beforeBody: isStudy ? (items) => {
+              const l = filtered[items[0].dataIndex];
+              return [`Total Study: ${fmtHM(l.hours)}`];
+            } : undefined,
+            label: (item) => {
+              if(isStudy) {
+                if(item.raw === 0) return null;   // hide 0-value segments
+                return `  ${item.dataset.label}: ${fmtHM(item.raw)}`;
+              }
+              if(type === 'combined') {
+                const l = filtered[item.dataIndex];
+                return [`  Total: ${fmtHM(item.raw)}`, `  Study: ${fmtHM(l.study)}  ·  Skills: ${fmtHM(l.skills)}`];
+              }
+              return `  ${fmtHM(item.raw)}`;
+            },
+            afterBody: isStudy ? () => ['', 'Click bar to split'] : undefined
+          }
+        }
+      },
+      scales: {
+        x: {
+          stacked: isStudy,
+          grid: { display: false },
+          ticks: { color: '#6b6b8a', font: { family: 'Space Mono', size: 8 }, maxRotation: 0, autoSkip: true, maxTicksLimit: 12 }
+        },
+        y: {
+          stacked: isStudy,
+          beginAtZero: true,
+          grid: { color: 'rgba(255,255,255,0.05)' },
+          ticks: { color: '#6b6b8a', font: { family: 'Space Mono', size: 8 } }
+        }
+      }
+    }
+  });
+  cfg.setChart(chart);
+}
+
+function initDaily() {
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('studyDateInput').value  = today;
+  document.getElementById('skillsDateInput').value = today;
+
+  ['study','skills','combined'].forEach(t => {
+    const saved = load('range_' + t, null);
+    if (saved !== null) DAILY_CONFIG[t].range = saved;
+  });
+
+  renderDaily('study');
+  renderDaily('skills');
+  renderCombined();
+}
+
+// ─── SPLIT MODAL ──────────────────────────────────────────────────────────────
+let currentSplitDate = null;
+
+function openSplitModal(date) {
+  const logs = load('daily_study', []);
+  const log = logs.find(l => l.date === date);
+  if(!log) { showToast('No entry for this date.'); return; }
+
+  currentSplitDate = date;
+  const d = new Date(date + 'T00:00:00');
+  document.getElementById('splitDateLabel').textContent =
+    d.toLocaleDateString('en-IN', { weekday:'short', day:'numeric', month:'short', year:'numeric' });
+  document.getElementById('splitTotalLabel').textContent = 'Total study: ' + fmtHM(log.hours);
+
+  const lecD  = log.lecture   != null ? decimalToHM(log.lecture)   : { h:0, m:0 };
+  const selfD = log.selfStudy != null ? decimalToHM(log.selfStudy) : { h:0, m:0 };
+
+  document.getElementById('splitLecH').value  = lecD.h  || '';
+  document.getElementById('splitLecM').value  = lecD.m  || '';
+  document.getElementById('splitSelfH').value = selfD.h || '';
+  document.getElementById('splitSelfM').value = selfD.m || '';
+  document.getElementById('splitMsg').textContent = '';
+
+  document.getElementById('splitModal').classList.add('show');
+}
+
+function closeSplitModal() {
+  document.getElementById('splitModal').classList.remove('show');
+  currentSplitDate = null;
+}
+
+function saveSplit() {
+  if(!currentSplitDate) return;
+  const logs = load('daily_study', []);
+  const idx = logs.findIndex(l => l.date === currentSplitDate);
+  if(idx === -1) { closeSplitModal(); return; }
+
+  const lh = parseInt(document.getElementById('splitLecH').value)  || 0;
+  const lm = parseInt(document.getElementById('splitLecM').value)  || 0;
+  const sh = parseInt(document.getElementById('splitSelfH').value) || 0;
+  const sm = parseInt(document.getElementById('splitSelfM').value) || 0;
+
+  if(lm > 59 || sm > 59) {
+    document.getElementById('splitMsg').textContent = 'Minutes must be 0–59.';
+    return;
+  }
+
+  const lec  = lh + lm/60;
+  const self = sh + sm/60;
+  const total = logs[idx].hours;
+
+  if(Math.abs((lec + self) - total) > 0.02) {
+    document.getElementById('splitMsg').textContent =
+      `Lecture + Self Study = ${fmtHM(lec + self)} but total is ${fmtHM(total)}. They must match.`;
+    return;
+  }
+
+  logs[idx].lecture   = +lec.toFixed(2);
+  logs[idx].selfStudy = +self.toFixed(2);
+  save('daily_study', logs);
+  closeSplitModal();
+  renderDaily('study');
+  showToast('Split saved!');
+}
+
+function clearSplit() {
+  if(!currentSplitDate) return;
+  const logs = load('daily_study', []);
+  const idx = logs.findIndex(l => l.date === currentSplitDate);
+  if(idx === -1) { closeSplitModal(); return; }
+  delete logs[idx].lecture;
+  delete logs[idx].selfStudy;
+  save('daily_study', logs);
+  closeSplitModal();
+  renderDaily('study');
+  showToast('Split cleared.');
+}
+
+// ─── MOCK SCORES ──────────────────────────────────────────────────────────────
+let mainsChart = null;
+let advChart    = null;
+
+const MOCK_CONFIG = {
+  mains: { 
+    storageKey:'mocks_mains', 
+    nameId:'mainsMockName', 
+    marksId:'mainsMockMarks', 
+    bodyId:'mainsMockTableBody', 
+    emptyId:'mainsMockEmpty', 
+    chartId:'mainsMarksChart', 
+    color:'#8be9fd', 
+    maxMarks:300,
+    type:'mains',
+    chartRef: ()=>mainsChart, 
+    setChart: (c)=>{ mainsChart=c; } 
+  },
+  adv: { 
+    storageKey:'mocks_adv', 
+    nameId:'advMockName', 
+    marksId:'advMockMarks', 
+    bodyId:'advMockTableBody', 
+    emptyId:'advMockEmpty', 
+    chartId:'advMarksChart', 
+    color:'#bd93f9', 
+    maxMarks:180,
+    type:'adv',
+    chartRef: ()=>advChart, 
+    setChart: (c)=>{ advChart=c; } 
+  }
+};
+
+function addMockType(type) {
+  const cfg = MOCK_CONFIG[type];
+  const name  = document.getElementById(cfg.nameId).value.trim();
+  const marks = parseInt(document.getElementById(cfg.marksId).value);
+  if(!name)  { showToast('Enter a test name!'); return; }
+  if(isNaN(marks)||marks<0||marks>cfg.maxMarks) { showToast(`Marks must be 0–${cfg.maxMarks}!`); return; }
+  const mocks = load(cfg.storageKey, []);
+  mocks.push({ date: new Date().toISOString().split('T')[0], name, marks, id: Date.now() });
+  save(cfg.storageKey, mocks);
+  document.getElementById(cfg.nameId).value  = '';
+  document.getElementById(cfg.marksId).value = '';
+  renderMockType(type);
+  updateSummary();
+  showToast('Score added!');
+}
+
+function deleteMockType(type, id) {
+  const cfg = MOCK_CONFIG[type];
+  let mocks = load(cfg.storageKey, []);
+  mocks = mocks.filter(m => m.id !== id);
+  save(cfg.storageKey, mocks);
+  renderMockType(type);
+  updateSummary();
+  showToast('Entry deleted.');
+}
+
+function scoreClass(m, maxMarks) {
+  const pct = (m/maxMarks)*100;
+  if(pct>=70) return 'score-high';
+  if(pct>=40) return 'score-mid';
+  return 'score-low';
+}
+
+function renderMockType(type) {
+  const cfg   = MOCK_CONFIG[type];
+  const mocks = load(cfg.storageKey, []);
+  const tbody = document.getElementById(cfg.bodyId);
+  const empty = document.getElementById(cfg.emptyId);
+  tbody.innerHTML = '';
+  empty.style.display = mocks.length ? 'none' : 'block';
+  const sorted = [...mocks].sort((a,b)=>a.date.localeCompare(b.date));
+  sorted.forEach((m, idx) => {
+    const pct  = ((m.marks/cfg.maxMarks)*100).toFixed(1);
+    const prev = sorted[idx-1];
+    let improveBadge = '<span style="color:var(--muted);font-size:10px;font-family:Space Mono,monospace">—</span>';
+    if(prev) {
+      const diff = m.marks - prev.marks;
+      if(diff > 0)       improveBadge = `<span class="improve-badge improve-up"><i class="fa-solid fa-arrow-up"></i> +${diff}</span>`;
+      else if(diff < 0)  improveBadge = `<span class="improve-badge improve-down"><i class="fa-solid fa-arrow-down"></i> ${diff}</span>`;
+      else               improveBadge = `<span class="improve-badge improve-same">= 0</span>`;
+    }
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td style="font-family:'Space Mono',monospace;font-size:10px;color:var(--muted)">${m.date}</td>
+      <td style="font-weight:600;font-size:11px">${m.name}</td>
+      <td><span class="score-badge ${scoreClass(m.marks, cfg.maxMarks)}">${m.marks}/${cfg.maxMarks}</span></td>
+      <td style="color:var(--muted);font-size:11px">${pct}%</td>
+      <td>${improveBadge}</td>
+      <td><button class="btn danger" onclick="deleteMockType('${type}',${m.id})"><i class="fa-solid fa-trash-can"></i></button></td>`;
+    tbody.appendChild(tr);
+  });
+  renderChartType(type, mocks);
+}
+
+function renderChartType(type, mocks) {
+  const cfg    = MOCK_CONFIG[type];
+  const ctx    = document.getElementById(cfg.chartId).getContext('2d');
+  const sorted = [...mocks].sort((a,b)=>a.date.localeCompare(b.date));
+  const labels = sorted.map(m=>m.date);
+  const data   = sorted.map(m=>m.marks);
+  const prev   = cfg.chartRef();
+  if(prev) prev.destroy();
+  const chart = new Chart(ctx, {
+    type:'line',
+    data:{
+      labels,
+      datasets:[{
+        label:'Marks',
+        data,
+        borderColor: cfg.color,
+        backgroundColor: cfg.color + '18',
+        pointBackgroundColor: cfg.color,
+        pointBorderColor:'#000',
+        pointRadius:5,
+        pointHoverRadius:8,
+        borderWidth:2,
+        tension:0.35,
+        fill:true
+      }]
+    },
+    options:{
+      responsive:true,
+      maintainAspectRatio:false,
+      plugins:{
+        legend:{display:false},
+        tooltip:{
+          backgroundColor:'#1c1c28',
+          borderColor: cfg.color,
+          borderWidth:1,
+          titleColor: cfg.color,
+          bodyColor:'#e8e8f0',
+          padding:8,
+          callbacks:{
+            title: (items) => sorted[items[0].dataIndex].name,
+            label: (item)  => `  Marks: ${item.raw}/${cfg.maxMarks}  ·  Date: ${sorted[item.dataIndex].date}`
+          }
+        }
+      },
+      scales:{
+        x:{ grid:{color:'rgba(255,255,255,0.05)'}, ticks:{color:'#6b6b8a',font:{family:'Space Mono',size:8}} },
+        y:{ min:0, max:cfg.maxMarks, grid:{color:'rgba(255,255,255,0.05)'}, ticks:{color:'#6b6b8a',font:{family:'Space Mono',size:8}} }
+      }
+    }
+  });
+  cfg.setChart(chart);
+}
+
+function renderMocks() {
+  renderMockType('mains');
+  renderMockType('adv');
+}
+
+// ─── LECTURE COMPLETION ───────────────────────────────────────────────────────
+function getLecTotal(id)     { return load(id+'_total', 0); }
+function saveLecTotal(id, n) { save(id+'_total', n); }
+function getLecDone(id)      { return load(id+'_done', []); }
+function saveLecDone(id, arr){ save(id+'_done', arr); }
+
+function setLecTotal(subId, val) {
+  const n = Math.max(0, parseInt(val)||0);
+  saveLecTotal(subId, n);
+  const done = getLecDone(subId).filter(x => x <= n);
+  saveLecDone(subId, done);
+  rebuildLecOMR(subId);
+  updateLecSubjectUI(subId);
+  updateLecGrandSummary();
+  updateSummary();
+}
+
+function rebuildLecOMR(subId) {
+  const sub = LEC_SUBJECTS.find(s => s.id === subId);
+  const total = getLecTotal(subId);
+  const wrap = document.querySelector(`#lec_${subId} .lec-omr-wrap`);
+  if(wrap) wrap.innerHTML = renderLecSubjectOMR(subId, total, sub.color);
+}
+
+function renderLecSubjectOMR(subId, total, color) {
+  const done = getLecDone(subId);
+  if(total === 0) return '<div style="text-align:center;padding:16px;color:var(--muted);font-family:Space Mono,monospace;font-size:11px">Set total lectures above to show OMR</div>';
+  let html = '<div class="lec-omr-grid">';
+  for(let i = 1; i <= total; i++) {
+    const isDone = done.includes(i);
+    html += `<div class="lec-omr-bubble${isDone?' lec-omr-done':''}" 
+      style="${isDone?`background:${color};border-color:${color};color:#000;box-shadow:0 0 8px ${color}55`:''}"
+      onclick="toggleLecBubble('${subId}',${i},this)" title="Lecture ${i}">${i}</div>`;
+  }
+  html += '</div>';
+  return html;
+}
+
+function toggleLecBubble(subId, n, el) {
+  const done = getLecDone(subId);
+  const idx  = done.indexOf(n);
+  const sub  = LEC_SUBJECTS.find(s => s.id === subId);
+  if(idx > -1) {
+    done.splice(idx, 1);
+    el.classList.remove('lec-omr-done');
+    el.style.background   = '';
+    el.style.borderColor  = '';
+    el.style.color        = '';
+    el.style.boxShadow    = '';
+  } else {
+    done.push(n);
+    el.classList.add('lec-omr-done');
+    el.style.background  = sub.color;
+    el.style.borderColor = sub.color;
+    el.style.color       = '#000';
+    el.style.boxShadow   = `0 0 8px ${sub.color}55`;
+  }
+  saveLecDone(subId, done);
+  updateLecSubjectUI(subId);
+  updateLecGrandSummary();
+  updateSummary();
+}
+
+function updateLecSubjectUI(subId) {
+  const total = getLecTotal(subId);
+  const done  = getLecDone(subId).length;
+  const pending = Math.max(0, total - done);
+  const pct = total > 0 ? Math.round((done/total)*100) : 0;
+
+  const pctEl  = document.getElementById('lecPct_' + subId);
+  const barEl  = document.getElementById('lecBar_' + subId);
+  const doneEl = document.getElementById('lecDone_' + subId);
+  const pendEl = document.getElementById('lecPend_' + subId);
+  if(pctEl)  pctEl.textContent = pct + '%';
+  if(barEl)  barEl.style.width = pct + '%';
+  if(doneEl) doneEl.textContent = done;
+  if(pendEl) pendEl.textContent = pending;
+}
+
+function updateLecGrandSummary() {
+  let grandTotal = 0, grandDone = 0;
+  LEC_SUBJECTS.forEach(s => {
+    grandTotal += getLecTotal(s.id);
+    grandDone  += getLecDone(s.id).length;
+  });
+  document.getElementById('lecDoneSummary').textContent = grandDone;
+  document.getElementById('lecPendingSummary').textContent = Math.max(0, grandTotal - grandDone);
+  document.getElementById('lecTotalSummary').textContent = `${grandDone} / ${grandTotal} lectures done`;
+}
+
+function renderLectures() {
+  const grid = document.getElementById('lecSubjectsGrid');
+  grid.innerHTML = '';
+
+  LEC_SUBJECTS.forEach(sub => {
+    const total   = getLecTotal(sub.id);
+    const doneArr = getLecDone(sub.id);
+    const done    = doneArr.length;
+    const pending = Math.max(0, total - done);
+    const pct     = total > 0 ? Math.round((done/total)*100) : 0;
+
+    const div = document.createElement('div');
+    div.className = 'lec-subject';
+    div.id = 'lec_' + sub.id;
+    div.innerHTML = `
+      <div class="lec-header">
+        <div class="lec-name"><i class="fa-solid ${sub.icon}" style="color:${sub.color}"></i> ${sub.name}</div>
+        <div class="lec-pct" id="lecPct_${sub.id}" style="color:${sub.color}">${pct}%</div>
+      </div>
+      <div class="lec-bar-track">
+        <div class="lec-bar-fill" id="lecBar_${sub.id}" style="width:${pct}%;background:${sub.color}"></div>
+      </div>
+      <div class="lec-stats-row">
+        <div class="lec-stat">Done: <span id="lecDone_${sub.id}" style="color:var(--green)">${done}</span></div>
+        <div class="lec-stat">Pending: <span id="lecPend_${sub.id}" style="color:var(--accent2)">${pending}</span></div>
+        <div class="lec-stat">Total: <span id="lecTot_${sub.id}">${total}</span></div>
+      </div>
+      <div class="lec-total-edit">
+        Total lectures:
+        <input type="number" min="0" value="${total}"
+          onchange="setLecTotal('${sub.id}',this.value)"
+          style="width:50px;padding:4px 6px;font-size:11px;text-align:center" />
+      </div>
+      <div class="lec-omr-wrap">${renderLecSubjectOMR(sub.id, total, sub.color)}</div>`;
+    grid.appendChild(div);
+  });
+
+  updateLecGrandSummary();
+}
+
+// ─── CHAPTERS ─────────────────────────────────────────────────────────────────
+function getChapters(subId) { return load(`chl_${subId}`, []); }
+function saveChapters(subId, list) { save(`chl_${subId}`, list); }
+
+function renderSubjects() {
+  const grid = document.getElementById('subjectsGrid');
+  grid.innerHTML = '';
+  SUBJECTS.forEach(sub => {
+    const chapters = getChapters(sub.id);
+    const total     = chapters.length;
+    const completed = chapters.filter(c=>c.done).length;
+    const pct       = total > 0 ? Math.round((completed/total)*100) : 0;
+
+    const div = document.createElement('div');
+    div.className = 'subject-item';
+    div.id = 'subj_' + sub.id;
+
+    let chRowsHTML = chapters.length ? chapters.map((ch) => `
+      <div class="ch-row${ch.done?' done':''}" onclick="toggleChapter('${sub.id}',${ch.id},this)">
+        <div class="ch-checkbox"><i class="fa-solid fa-check"></i></div>
+        <input class="ch-name" value="${ch.name.replace(/"/g,'&quot;')}"
+          onclick="event.stopPropagation()"
+          onchange="renameChapter('${sub.id}',${ch.id},this.value)"
+          onkeydown="if(event.key==='Enter')this.blur()" />
+        <button class="ch-del" onclick="event.stopPropagation();deleteChapter('${sub.id}',${ch.id},this)" title="Remove">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>`).join('')
+      : `<div class="no-chapters" style="text-align:center;padding:15px 0;color:var(--muted);font-family:'Space Mono',monospace;font-size:10px"><i class="fa-solid fa-book" style="display:block;margin-bottom:6px;opacity:0.3"></i>No chapters yet</div>`;
+
+    div.innerHTML = `
+      <div class="subject-header">
+        <div class="subject-name">
+          <i class="fa-solid ${sub.icon}" style="color:${sub.color}"></i> ${sub.name}
+        </div>
+        <div class="subject-pct" id="subPct_${sub.id}" style="color:${sub.color}">${pct}%</div>
+      </div>
+      <div class="progress-track">
+        <div class="progress-fill" id="subBar_${sub.id}" style="width:${pct}%;background:${sub.color}"></div>
+      </div>
+      <div class="ch-list">${chRowsHTML}</div>
+      <div class="ch-add-row">
+        <input type="text" id="newch_${sub.id}" placeholder="Add chapter name…" 
+          onkeydown="if(event.key==='Enter')addChapter('${sub.id}')" />
+        <button class="ch-add-btn" onclick="addChapter('${sub.id}')"><i class="fa-solid fa-plus"></i></button>
+      </div>
+      <div class="ch-stats" id="subStats_${sub.id}">${completed} / ${total} completed</div>`;
+    grid.appendChild(div);
+  });
+  updateSummary();
+}
+
+function addChapter(subId) {
+  const input = document.getElementById(`newch_${subId}`);
+  const name = input.value.trim();
+  if(!name) { showToast('Enter a chapter name!'); return; }
+  const chapters = getChapters(subId);
+  const newCh = { name, done: false, id: Date.now() };
+  chapters.push(newCh);
+  saveChapters(subId, chapters);
+  input.value = '';
+
+  const list = document.querySelector(`#subj_${subId} .ch-list`);
+  const placeholder = list.querySelector('.no-chapters');
+  if(placeholder) placeholder.remove();
+
+  const row = document.createElement('div');
+  row.className = 'ch-row';
+  row.setAttribute('onclick', `toggleChapter('${subId}',${newCh.id},this)`);
+  row.innerHTML = `
+    <div class="ch-checkbox"><i class="fa-solid fa-check"></i></div>
+    <input class="ch-name" value="${name.replace(/"/g,'&quot;')}"
+      onclick="event.stopPropagation()"
+      onchange="renameChapter('${subId}',${newCh.id},this.value)"
+      onkeydown="if(event.key==='Enter')this.blur()" />
+    <button class="ch-del" onclick="event.stopPropagation();deleteChapter('${subId}',${newCh.id},this)" title="Remove">
+      <i class="fa-solid fa-xmark"></i>
+    </button>`;
+  list.appendChild(row);
+
+  updateChapterSubjectUI(subId);
+  updateSummary();
+  showToast('Chapter added!');
+  input.focus();
+}
+
+function toggleChapter(subId, chId, rowEl) {
+  const chapters = getChapters(subId);
+  const ch = chapters.find(c => c.id === chId);
+  if(!ch) return;
+  ch.done = !ch.done;
+  saveChapters(subId, chapters);
+  rowEl.classList.toggle('done', ch.done);
+  updateChapterSubjectUI(subId);
+  updateSummary();
+}
+
+function renameChapter(subId, chId, val) {
+  const chapters = getChapters(subId);
+  const ch = chapters.find(c => c.id === chId);
+  if(ch) ch.name = val.trim() || ch.name;
+  saveChapters(subId, chapters);
+}
+
+function deleteChapter(subId, chId, btnEl) {
+  const chapters = getChapters(subId);
+  const idx = chapters.findIndex(c => c.id === chId);
+  if(idx === -1) return;
+  chapters.splice(idx, 1);
+  saveChapters(subId, chapters);
+
+  const row = btnEl.closest('.ch-row');
+  if(row) row.remove();
+
+  const list = document.querySelector(`#subj_${subId} .ch-list`);
+  if(list && !list.querySelector('.ch-row')) {
+    list.innerHTML = `<div class="no-chapters" style="text-align:center;padding:15px 0;color:var(--muted);font-family:'Space Mono',monospace;font-size:10px"><i class="fa-solid fa-book" style="display:block;margin-bottom:6px;opacity:0.3"></i>No chapters yet</div>`;
+  }
+
+  updateChapterSubjectUI(subId);
+  updateSummary();
+  showToast('Chapter removed.');
+}
+
+function updateChapterSubjectUI(subId) {
+  const chapters = getChapters(subId);
+  const total = chapters.length;
+  const completed = chapters.filter(c => c.done).length;
+  const pct = total > 0 ? Math.round((completed/total)*100) : 0;
+
+  const pctEl = document.getElementById('subPct_' + subId);
+  const barEl = document.getElementById('subBar_' + subId);
+  const statsEl = document.getElementById('subStats_' + subId);
+  if(pctEl)   pctEl.textContent = pct + '%';
+  if(barEl)   barEl.style.width = pct + '%';
+  if(statsEl) statsEl.textContent = `${completed} / ${total} completed`;
+}
+
+// ─── SUMMARY ──────────────────────────────────────────────────────────────────
+function updateSummary() {
+  const mainsMocks = load('mocks_mains', []);
+  const advMocks   = load('mocks_adv', []);
+  const allMocks   = [...mainsMocks, ...advMocks];
+  
+  document.getElementById('mockCount').textContent = allMocks.length;
+  
+  if(mainsMocks.length) {
+    const mainsScores = mainsMocks.map(m=>m.marks);
+    const avgMains = Math.round(mainsScores.reduce((a,b)=>a+b,0)/mainsScores.length);
+    document.getElementById('avgMainsScore').textContent = avgMains;
+    document.getElementById('highScore').textContent = Math.max(...mainsScores);
+  } else {
+    document.getElementById('avgMainsScore').textContent = '–';
+    document.getElementById('highScore').textContent = '–';
+  }
+  
+  if(advMocks.length) {
+    const advScores = advMocks.map(m=>m.marks);
+    const avgAdv = Math.round(advScores.reduce((a,b)=>a+b,0)/advScores.length);
+    document.getElementById('avgAdvScore').textContent = avgAdv;
+    document.getElementById('highAdvScore').textContent = Math.max(...advScores);
+  } else {
+    document.getElementById('avgAdvScore').textContent = '–';
+    document.getElementById('highAdvScore').textContent = '–';
+  }
+  
+  let totalC=0, totalT=0;
+  SUBJECTS.forEach(s => {
+    const chapters = getChapters(s.id);
+    totalT += chapters.length;
+    totalC += chapters.filter(c=>c.done).length;
+  });
+  const pct = totalT>0 ? Math.round((totalC/totalT)*100) : 0;
+  document.getElementById('overallPct').textContent = pct+'%';
+  
+  let lecTotal = 0, lecDone = 0;
+  LEC_SUBJECTS.forEach(s => {
+    lecTotal += getLecTotal(s.id);
+    lecDone += getLecDone(s.id).length;
+  });
+  
+  const lecPct = lecTotal > 0 ? ((lecDone/lecTotal)*100).toFixed(1) : 0;
+  document.getElementById('lecCompletionPct').textContent = lecPct + '%';
+  
+  document.getElementById('lecDoneSummary').textContent = lecDone;
+  document.getElementById('lecPendingSummary').textContent = Math.max(0, lecTotal - lecDone);
+}
+
+// ─── THEME ────────────────────────────────────────────────────────────────────
+function toggleTheme() {
+  const cur = document.documentElement.getAttribute('data-theme');
+  document.documentElement.setAttribute('data-theme', cur==='light'?'dark':'light');
+  localStorage.setItem('theme', cur==='light'?'dark':'light');
+}
+function loadTheme() {
+  const t = localStorage.getItem('theme')||'dark';
+  document.documentElement.setAttribute('data-theme', t);
+}
+
+// ─── TOAST ────────────────────────────────────────────────────────────────────
+let toastTimer;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>t.classList.remove('show'), 2500);
+}
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+function init() {
+  loadTheme();
+  initCountdown();
+  renderLectures();
+  initDaily();
+  renderMocks();
+  renderSubjects();
+  updateSummary();
+}
+
+init();
+</script>
+</body>
+</html>
