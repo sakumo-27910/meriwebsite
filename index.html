@@ -7,7 +7,6 @@
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Mono:wght@400;700&family=Syne:wght@400;600;800&display=swap" rel="stylesheet"/>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   :root {
     --bg: #0a0a0f;
@@ -881,33 +880,12 @@
 </head>
 <body>
 
-<!-- AUTH SCREEN -->
-<div id="authScreen" style="position:fixed;inset:0;background:var(--bg);z-index:100000;display:flex;align-items:center;justify-content:center;padding:20px;">
-  <div class="card" style="max-width:400px;width:100%;text-align:center;">
-    <h2 style="font-family:'Bebas Neue',sans-serif;font-size:36px;letter-spacing:2px;margin-bottom:8px;color:var(--accent)">TARGET JEE 2028</h2>
-    <p style="font-family:'Space Mono',monospace;font-size:11px;color:var(--muted);margin-bottom:24px">Log in to sync your progress across devices.</p>
-    
-    <input type="email" id="authEmail" placeholder="Email" style="margin-bottom:10px; text-align:center;">
-    <input type="password" id="authPassword" placeholder="Password" style="margin-bottom:16px; text-align:center;">
-    
-    <button class="btn" style="width:100%;margin-bottom:10px;" onclick="signIn()">Log In</button>
-    <button class="btn" style="width:100%;background:transparent;border:1px solid var(--border);color:var(--text);" onclick="signUp()">Sign Up</button>
-    
-    <div id="authMsg" style="font-family:'Space Mono',monospace;font-size:10px;color:var(--red);margin-top:12px;min-height:14px;"></div>
-  </div>
-</div>
-
 <header>
   <div class="top-bar">
     <span class="logo-tag">JEE 2028</span>
-    <div style="display:flex; gap:8px;">
-      <button class="theme-toggle" onclick="toggleTheme()">
-        <i class="fa-solid fa-circle-half-stroke"></i> Toggle Theme
-      </button>
-      <button class="theme-toggle" onclick="signOut()" style="color:var(--red); border-color:var(--red);">
-        <i class="fa-solid fa-right-from-bracket"></i> Logout
-      </button>
-    </div>
+    <button class="theme-toggle" onclick="toggleTheme()">
+      <i class="fa-solid fa-circle-half-stroke"></i> Toggle Theme
+    </button>
   </div>
   <h1 class="main-title">TARGET JEE 2028</h1>
   <p class="subtitle">// TRACK · GRIND · CONQUER</p>
@@ -1245,11 +1223,6 @@
 <div id="toast"></div>
 
 <script>
-// ─── SUPABASE CONFIG ─────────────────────────────────────────────────────────
-const SUPABASE_URL = 'https://qdpdpsemhcyocxkaovuc.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFkcGRwc2VtaGN5b2N4a2FvdnVjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA5OTI0MzQsImV4cCI6MjEwNjU2ODQzNH0.tEAZry-h9ghIH_VPealbovlFH1jYh5HjiqYCqSPYl2E';
-const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
 // ─── UNIQUE SPLIT COLORS (only used here) ─────────────────────────────────────
 const LECTURE_COLOR = '#ff79c6';   // pink — unique to lecture split
 const SELF_COLOR    = '#a3e635';   // lime — unique to self-study split
@@ -1279,83 +1252,9 @@ const MOTIVATIONS = [
   "Consistency is the key to JEE.", "No shortcuts. Only smart work + hard work."
 ];
 
-// ─── DATA HELPERS (SUPABASE SYNC) ────────────────────────────────────────────
-const save = async (k, v) => {
-  // 1. Save locally immediately so the UI updates instantly
-  localStorage.setItem(k, JSON.stringify(v));
-  
-  // 2. Sync to Supabase in the background
-  const { data: { user } } = await supabaseClient.auth.getUser();
-  if (user) {
-    await supabaseClient.from('user_data').upsert(
-      { user_id: user.id, key: k, value: v, updated_at: new Date() },
-      { onConflict: 'user_id, key' }
-    );
-  }
-};
-
-const load = (k, def) => { 
-  try { 
-    const v = localStorage.getItem(k); 
-    return v ? JSON.parse(v) : def; 
-  } catch { return def; } 
-};
-
-// ─── AUTHENTICATION LOGIC ────────────────────────────────────────────────────
-async function signUp() {
-  const email = document.getElementById('authEmail').value;
-  const password = document.getElementById('authPassword').value;
-  const { data, error } = await supabaseClient.auth.signUp({ email, password });
-  if (error) document.getElementById('authMsg').textContent = error.message;
-  else document.getElementById('authMsg').textContent = 'Check your email for confirmation!';
-}
-
-async function signIn() {
-  const email = document.getElementById('authEmail').value;
-  const password = document.getElementById('authPassword').value;
-  const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
-  if (error) document.getElementById('authMsg').textContent = error.message;
-}
-
-async function signOut() {
-  await supabaseClient.auth.signOut();
-  localStorage.clear(); // Clear local cache on logout
-  location.reload();
-}
-
-// ─── INITIALIZATION & DATA FETCHING ──────────────────────────────────────────
-async function loadAllDataFromSupabase() {
-  const { data, error } = await supabaseClient.from('user_data').select('*');
-  if (error) {
-    console.error('Error loading data:', error);
-    return;
-  }
-  
-  // Wipe local storage except for UI preferences like theme
-  const theme = localStorage.getItem('theme');
-  localStorage.clear();
-  if (theme) localStorage.setItem('theme', theme);
-
-  // Populate local storage with Supabase data
-  data.forEach(item => {
-    localStorage.setItem(item.key, JSON.stringify(item.value));
-  });
-}
-
-// Auth State Listener
-supabaseClient.auth.onAuthStateChange(async (event, session) => {
-  const authScreen = document.getElementById('authScreen');
-  
-  if (session) {
-    // User is logged in
-    authScreen.style.display = 'none';
-    await loadAllDataFromSupabase(); // Fetch their data
-    init(); // Run your existing init() function to render everything!
-  } else {
-    // User is logged out
-    authScreen.style.display = 'flex';
-  }
-});
+// ─── DATA HELPERS ──────────────────────────────────────────────────────────────
+const save = (k,v) => localStorage.setItem(k, JSON.stringify(v));
+const load = (k, def) => { try { const v=localStorage.getItem(k); return v?JSON.parse(v):def; } catch { return def; } };
 
 // ─── TIME FORMATTERS (h + m) ──────────────────────────────────────────────────
 function decimalToHM(d) {
@@ -2399,7 +2298,7 @@ function init() {
   updateSummary();
 }
 
-// Note: init() is now called inside the onAuthStateChange listener, not here.
+init();
 </script>
 </body>
 </html>
