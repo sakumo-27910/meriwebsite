@@ -876,6 +876,123 @@
     font-family: 'Syne', sans-serif;
   }
   #toast.show { transform: translateY(0); opacity: 1; }
+
+  /* ─── FOCUS TIMER ───────────────────── */
+  .timer-card { grid-column: span 12; }
+
+  .timer-label-row { margin-bottom: 18px; }
+  .timer-label-row input { text-align: center; }
+
+  .timer-display {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(56px, 13vw, 118px);
+    line-height: 1;
+    letter-spacing: 4px;
+    text-align: center;
+    color: var(--text);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+    transition: color 0.3s, text-shadow 0.3s;
+  }
+  .timer-display.running {
+    color: var(--lecture-color);
+    text-shadow: 0 0 50px rgba(255,121,198,0.35);
+  }
+  .timer-display.paused {
+    color: var(--accent);
+    text-shadow: 0 0 30px rgba(240,192,64,0.2);
+  }
+  .timer-status {
+    text-align: center;
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--muted);
+    margin-top: 10px;
+    text-transform: uppercase;
+  }
+  .timer-btns {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-top: 22px;
+  }
+  .timer-btn-start  { background: var(--lecture-color); }
+  .timer-btn-pause  { background: var(--accent); }
+  .timer-btn-resume { background: var(--green); }
+  .timer-btn-stop   { background: var(--accent3); }
+  .timer-btn-cancel {
+    background: transparent;
+    border: 1px solid var(--red);
+    color: var(--red);
+  }
+  .timer-btn-cancel:hover { background: var(--red); color: #fff; }
+  .timer-totals {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    margin-top: 24px;
+  }
+  .timer-log-wrap { margin-top: 24px; }
+  .timer-fs-hint {
+    display: none;
+    text-align: center;
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 1px;
+    margin-top: 24px;
+    opacity: 0.7;
+  }
+  .timer-fs-hint b { color: var(--accent); }
+
+  /* ─── FULLSCREEN MODE ───────────────────── */
+  .timer-card:fullscreen,
+  .timer-card:-webkit-full-screen {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    width: 100vw;
+    height: 100vh;
+    padding: 6vh 6vw;
+    border: none;
+    border-radius: 0;
+    overflow: hidden;
+    background:
+      radial-gradient(circle at 50% 42%, rgba(255,121,198,0.10), transparent 62%),
+      var(--bg);
+  }
+  .timer-card:fullscreen:hover { border: none; }
+  .timer-card:fullscreen .card-title,
+  .timer-card:fullscreen .timer-log-wrap { display: none; }
+  .timer-card:fullscreen .timer-fs-hint  { display: block; }
+  .timer-card:fullscreen .timer-display  { font-size: clamp(80px, 19vw, 280px); }
+  .timer-card:fullscreen .timer-label-row input {
+    background: transparent;
+    border-color: transparent;
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--muted);
+    letter-spacing: 1px;
+  }
+  .timer-card:fullscreen .timer-label-row input:focus { border-color: transparent; }
+  .timer-card:fullscreen .timer-label-row input::placeholder { color: var(--muted); opacity: 0.5; }
+  .timer-card:fullscreen .timer-status { font-size: 12px; letter-spacing: 4px; margin-top: 18px; }
+  .timer-card:fullscreen .timer-btns { margin-top: 40px; gap: 14px; }
+  .timer-card:fullscreen .timer-btns .btn { padding: 14px 30px; font-size: 15px; }
+  .timer-card:fullscreen .timer-totals {
+    max-width: 620px;
+    width: 100%;
+    margin: 46px auto 0;
+  }
+  .timer-card:fullscreen .timer-totals .daily-stat { border-color: transparent; background: transparent; }
+  .timer-card:fullscreen .timer-totals .daily-stat-val { font-size: 34px; }
+
+  @media (max-width: 600px) {
+    .timer-totals { grid-template-columns: repeat(2, 1fr); }
+    .timer-display { letter-spacing: 2px; }
+  }
 </style>
 </head>
 <body>
@@ -1179,6 +1296,60 @@
   <div class="card chapters-card">
     <div class="card-title"><i class="fa-solid fa-book-open"></i> Chapter Completion Tracker</div>
     <div class="subjects-grid" id="subjectsGrid"></div>
+  </div>
+
+  <div class="section-divider" style="grid-column:span 12" data-label="focus timer"></div>
+
+  <!-- FOCUS TIMER -->
+  <div class="card timer-card" id="timerCard">
+    <div class="card-title" style="color:#ff79c6"><i class="fa-solid fa-stopwatch"></i> Focus Timer</div>
+
+    <div class="timer-label-row">
+      <input type="text" id="timerLabel" placeholder="What are you studying? (optional)" maxlength="40" />
+    </div>
+
+    <div class="timer-display" id="timerDisplay">00:00:00</div>
+    <div class="timer-status" id="timerStatus">IDLE — press Start to begin</div>
+
+    <div class="timer-btns">
+      <button class="btn timer-btn-start"   id="timerStartBtn"  onclick="timerStart()"><i class="fa-solid fa-play"></i> Start</button>
+      <button class="btn timer-btn-pause"   id="timerPauseBtn"  onclick="timerPause()"  style="display:none"><i class="fa-solid fa-pause"></i> Pause</button>
+      <button class="btn timer-btn-resume"  id="timerResumeBtn" onclick="timerResume()" style="display:none"><i class="fa-solid fa-play"></i> Resume</button>
+      <button class="btn timer-btn-stop"    id="timerStopBtn"   onclick="timerFinish()" style="display:none"><i class="fa-solid fa-flag-checkered"></i> Finish &amp; Log</button>
+      <button class="btn timer-btn-cancel"  id="timerCancelBtn" onclick="timerDiscard()" style="display:none"><i class="fa-solid fa-xmark"></i> Discard</button>
+    </div>
+
+    <div class="timer-totals">
+      <div class="daily-stat">
+        <div class="daily-stat-val" id="timerToday" style="color:#ff79c6">0m</div>
+        <div class="daily-stat-label">TODAY</div>
+      </div>
+      <div class="daily-stat">
+        <div class="daily-stat-val" id="timerTotal" style="color:#ff79c6">0m</div>
+        <div class="daily-stat-label">ALL TIME</div>
+      </div>
+      <div class="daily-stat">
+        <div class="daily-stat-val" id="timerSessions" style="color:#ff79c6">0</div>
+        <div class="daily-stat-label">SESSIONS</div>
+      </div>
+      <div class="daily-stat">
+        <div class="daily-stat-val" id="timerDays" style="color:#ff79c6">0</div>
+        <div class="daily-stat-label">DAYS LOGGED</div>
+      </div>
+    </div>
+
+    <div class="timer-fs-hint">Press <b>Esc</b> to exit fullscreen — the timer will pause</div>
+
+    <div class="timer-log-wrap">
+      <div class="daily-chart-label" style="margin-bottom:8px"><i class="fa-solid fa-list"></i> Daily timer log</div>
+      <div class="daily-table-wrap">
+        <table>
+          <thead><tr><th>DATE</th><th>TOTAL</th><th>SESSIONS</th><th></th></tr></thead>
+          <tbody id="timerLogBody"></tbody>
+        </table>
+        <div class="empty-state" id="timerEmpty">No timer sessions yet. Hit Start to begin your first focus block!</div>
+      </div>
+    </div>
   </div>
 
 </main>
@@ -2287,6 +2458,268 @@ function showToast(msg) {
   toastTimer = setTimeout(()=>t.classList.remove('show'), 2500);
 }
 
+// ─── FOCUS TIMER ──────────────────────────────────────────────────────────────
+const TIMER_SESSIONS_KEY = 'timer_sessions';
+const TIMER_LIVE_KEY     = 'timer_live';
+
+let timerRunning   = false;
+let timerStartedAt = null;
+let timerAccumMs   = 0;
+let timerTickId    = null;
+let timerSaveId    = null;
+let timerSessionDate  = null;
+let timerSessionLabel = '';
+
+function todayLocal() {
+  const d = new Date();
+  return d.getFullYear() + '-' +
+         String(d.getMonth() + 1).padStart(2, '0') + '-' +
+         String(d.getDate()).padStart(2, '0');
+}
+
+function fmtHMS(ms) {
+  const t = Math.max(0, Math.floor(ms / 1000));
+  const h = Math.floor(t / 3600);
+  const m = Math.floor((t % 3600) / 60);
+  const s = t % 60;
+  return String(h).padStart(2,'0') + ':' + String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
+}
+
+function fmtDurMs(ms) {
+  const h = ms / 3600000;
+  if (h < 0.0084) return Math.round(ms / 1000) + 's';
+  return fmtHM(h);
+}
+
+function currentElapsedMs() {
+  return timerAccumMs + (timerRunning && timerStartedAt ? Date.now() - timerStartedAt : 0);
+}
+
+function enterFullscreen() {
+  const el = document.getElementById('timerCard');
+  const req = el.requestFullscreen || el.webkitRequestFullscreen;
+  if (!req) return;
+  try { const p = req.call(el); if (p && p.catch) p.catch(() => {}); } catch (e) {}
+}
+function exitFullscreen() {
+  if (!document.fullscreenElement && !document.webkitFullscreenElement) return;
+  const fn = document.exitFullscreen || document.webkitExitFullscreen;
+  try { const p = fn.call(document); if (p && p.catch) p.catch(() => {}); } catch (e) {}
+}
+function onFullscreenChange() {
+  const el = document.fullscreenElement || document.webkitFullscreenElement;
+  if (el) return;
+  if (!timerRunning) return;
+  timerPause();
+  showToast('Fullscreen exited — timer paused.');
+}
+document.addEventListener('fullscreenchange', onFullscreenChange);
+document.addEventListener('webkitfullscreenchange', onFullscreenChange);
+
+function persistLive() {
+  save(TIMER_LIVE_KEY, {
+    running:  timerRunning,
+    accumMs:  Math.round(currentElapsedMs()),
+    label:    timerSessionLabel,
+    date:     timerSessionDate
+  });
+}
+
+function restoreLive() {
+  const live = load(TIMER_LIVE_KEY, null);
+  if (!live || live.accumMs < 1000) return;
+  timerAccumMs      = live.accumMs;
+  timerSessionLabel = live.label || '';
+  timerSessionDate  = live.date || todayLocal();
+  timerRunning      = false;
+  timerStartedAt    = null;
+  document.getElementById('timerLabel').value = timerSessionLabel;
+  showToast('Restored an unfinished session — Resume or Finish.');
+}
+
+function timerStart() {
+  if (timerRunning || timerAccumMs > 0) return;
+  timerSessionLabel = document.getElementById('timerLabel').value.trim();
+  timerSessionDate  = todayLocal();
+  timerAccumMs      = 0;
+  timerStartedAt    = Date.now();
+  timerRunning      = true;
+  enterFullscreen();
+  startTimerTick();
+  updateTimerUI();
+  updateTimerDisplay();
+  persistLive();
+}
+
+function timerResume() {
+  if (timerRunning || timerAccumMs <= 0) return;
+  timerStartedAt = Date.now();
+  timerRunning   = true;
+  enterFullscreen();
+  startTimerTick();
+  updateTimerUI();
+  updateTimerDisplay();
+  persistLive();
+}
+
+function timerPause() {
+  if (!timerRunning) return;
+  timerAccumMs += Date.now() - timerStartedAt;
+  timerStartedAt = null;
+  timerRunning   = false;
+  stopTimerTick();
+  updateTimerUI();
+  updateTimerDisplay();
+  persistLive();
+}
+
+function timerFinish() {
+  if (timerRunning) {
+    timerAccumMs += Date.now() - timerStartedAt;
+    timerStartedAt = null;
+    timerRunning   = false;
+  }
+  stopTimerTick();
+  const ms = timerAccumMs;
+  const label = timerSessionLabel;
+  const date  = timerSessionDate || todayLocal();
+  resetTimerState();
+  exitFullscreen();
+
+  if (ms < 1000) { showToast('Too short to log.'); return; }
+
+  const sessions = load(TIMER_SESSIONS_KEY, []);
+  sessions.push({
+    id: Date.now(),
+    date,
+    label: label || 'Focus session',
+    ms: Math.round(ms)
+  });
+  save(TIMER_SESSIONS_KEY, sessions);
+  renderTimer();
+  showToast('Logged ' + fmtDurMs(ms) + '!');
+}
+
+function timerDiscard() {
+  stopTimerTick();
+  resetTimerState();
+  exitFullscreen();
+  showToast('Session discarded.');
+}
+
+function resetTimerState() {
+  timerRunning      = false;
+  timerStartedAt    = null;
+  timerAccumMs      = 0;
+  timerSessionLabel = '';
+  timerSessionDate  = null;
+  localStorage.removeItem(TIMER_LIVE_KEY);
+  document.getElementById('timerLabel').value = '';
+  updateTimerUI();
+  updateTimerDisplay();
+}
+
+function startTimerTick() {
+  stopTimerTick();
+  timerTickId = setInterval(updateTimerDisplay, 200);
+  timerSaveId = setInterval(persistLive, 5000);
+}
+function stopTimerTick() {
+  clearInterval(timerTickId);
+  clearInterval(timerSaveId);
+  timerTickId = timerSaveId = null;
+}
+
+function updateTimerDisplay() {
+  document.getElementById('timerDisplay').textContent = fmtHMS(currentElapsedMs());
+}
+
+function updateTimerUI() {
+  const active = timerRunning || timerAccumMs > 0;
+  document.getElementById('timerStartBtn').style.display  = active ? 'none' : 'inline-block';
+  document.getElementById('timerPauseBtn').style.display  = timerRunning ? 'inline-block' : 'none';
+  document.getElementById('timerResumeBtn').style.display = (!timerRunning && timerAccumMs > 0) ? 'inline-block' : 'none';
+  document.getElementById('timerStopBtn').style.display   = active ? 'inline-block' : 'none';
+  document.getElementById('timerCancelBtn').style.display = active ? 'inline-block' : 'none';
+  document.getElementById('timerLabel').disabled = timerRunning;
+
+  const disp = document.getElementById('timerDisplay');
+  disp.classList.toggle('running', timerRunning);
+  disp.classList.toggle('paused', !timerRunning && timerAccumMs > 0);
+
+  const st = document.getElementById('timerStatus');
+  if (timerRunning)              st.textContent = '● recording — stay focused';
+  else if (timerAccumMs > 0)     st.textContent = 'paused — resume or finish';
+  else                           st.textContent = 'idle — press start to begin';
+}
+
+function deleteTimerDay(date) {
+  let sessions = load(TIMER_SESSIONS_KEY, []);
+  sessions = sessions.filter(s => s.date !== date);
+  save(TIMER_SESSIONS_KEY, sessions);
+  renderTimer();
+  showToast('Day cleared.');
+}
+
+function renderTimer() {
+  const sessions = load(TIMER_SESSIONS_KEY, []);
+  const byDate = {};
+
+  sessions.forEach(s => {
+    if (!byDate[s.date]) byDate[s.date] = { date: s.date, ms: 0, list: [] };
+    byDate[s.date].ms += s.ms;
+    byDate[s.date].list.push(s);
+  });
+
+  const days = Object.values(byDate).sort((a, b) => b.date.localeCompare(a.date));
+  const tbody = document.getElementById('timerLogBody');
+  const empty = document.getElementById('timerEmpty');
+
+  tbody.innerHTML = '';
+  empty.style.display = days.length ? 'none' : 'block';
+
+  days.forEach(day => {
+    const d = new Date(day.date + 'T00:00:00');
+    const pretty = d.toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' });
+
+    const sorted = [...day.list].sort((a, b) => a.id - b.id);
+    const parts  = sorted.slice(0, 5).map(s => fmtDurMs(s.ms));
+    if (sorted.length > 5) parts.push('+' + (sorted.length - 5) + ' more');
+
+    const breakdown = `<div style="font-size:9px;font-family:'Space Mono',monospace;margin-top:3px;color:var(--muted)">${parts.join(' · ')}</div>`;
+
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td style="font-family:'Space Mono',monospace;font-size:10px;color:var(--muted)">${pretty}</td>
+      <td>
+        <span class="score-badge" style="background:#ff79c622;color:#ff79c6">${fmtDurMs(day.ms)}</span>
+        ${breakdown}
+      </td>
+      <td><span style="font-family:'Space Mono',monospace;font-size:11px;color:var(--muted)">${day.list.length}</span></td>
+      <td><button class="btn danger" onclick="deleteTimerDay('${day.date}')"><i class="fa-solid fa-trash-can"></i></button></td>`;
+    tbody.appendChild(tr);
+  });
+
+  const todayMs = byDate[todayLocal()] ? byDate[todayLocal()].ms : 0;
+  const totalMs = sessions.reduce((a, s) => a + s.ms, 0);
+
+  document.getElementById('timerToday').textContent    = fmtDurMs(todayMs);
+  document.getElementById('timerTotal').textContent    = fmtDurMs(totalMs);
+  document.getElementById('timerSessions').textContent = sessions.length;
+  document.getElementById('timerDays').textContent     = days.length;
+}
+
+window.addEventListener('beforeunload', e => {
+  if (timerRunning) { e.preventDefault(); e.returnValue = ''; }
+});
+
+function initTimer() {
+  restoreLive();
+  updateTimerUI();
+  updateTimerDisplay();
+  renderTimer();
+}
+
 // ─── INIT ─────────────────────────────────────────────────────────────────────
 function init() {
   loadTheme();
@@ -2296,6 +2729,7 @@ function init() {
   renderMocks();
   renderSubjects();
   updateSummary();
+  initTimer();
 }
 
 init();
