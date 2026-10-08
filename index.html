@@ -7,6 +7,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Mono:wght@400;700&family=Syne:wght@400;600;800&display=swap" rel="stylesheet"/>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
 <style>
   :root {
     --bg: #0a0a0f;
@@ -146,6 +147,22 @@
     display: flex; align-items: center; gap: 8px;
   }
   .card-title i { font-size: 12px; }
+
+  /* ─── BIG CENTERED SECTION TITLE (daily cards) ─── */
+  .daily-card .card-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 26px;
+    letter-spacing: 5px;
+    color: var(--text);
+    justify-content: center;
+    padding-bottom: 16px;
+    margin-bottom: 26px;
+    border-bottom: 1px solid var(--border);
+    font-weight: 400;
+  }
+  .daily-card .card-title i {
+    font-size: 24px;
+  }
 
   .days-card { grid-column: span 4; }
   .days-big {
@@ -403,11 +420,11 @@
   .range-btn.active { background: var(--accent); color: #000; }
   .daily-chart-wrap {
     position: relative;
-    height: 280px;
+    height: 300px;
     background: var(--surface2);
     border: 1px solid var(--border);
     border-radius: 8px;
-    padding: 12px;
+    padding: 12px 12px 6px;
     margin-bottom: 16px;
   }
   .daily-table-wrap {
@@ -575,12 +592,12 @@
   }
   .mock-chart-wrap { 
     position: relative; 
-    height: 320px;
-    min-height: 320px;
+    height: 340px;
+    min-height: 340px;
     background: var(--surface2);
     border: 1px solid var(--border);
     border-radius: 8px;
-    padding: 12px;
+    padding: 24px 12px 12px;
   }
   table {
     width: 100%;
@@ -787,26 +804,28 @@
     .summary-grid { grid-template-columns: repeat(2, 1fr); }
     .mock-form { grid-template-columns: 1fr; }
     .mock-form .btn { width: 100%; }
-    .mock-chart-wrap { height: 260px; min-height: 260px; }
+    .mock-chart-wrap { height: 280px; min-height: 280px; }
     .mock-table-wrap { max-height: 220px; }
     .daily-card { grid-column: span 12; }
-    .daily-chart-wrap { height: 240px; }
+    .daily-chart-wrap { height: 260px; }
     .daily-stats { grid-template-columns: repeat(5, 1fr); }
   }
   @media (max-width: 600px) {
     .summary-grid { grid-template-columns: 1fr 1fr; }
     .top-bar { flex-direction: column; gap: 12px; }
-    .mock-chart-wrap { height: 220px; min-height: 220px; padding: 6px; }
+    .mock-chart-wrap { height: 240px; min-height: 240px; padding: 20px 6px 6px; }
     .daily-form { grid-template-columns: 1fr 1fr 1fr; max-width: 100%; }
     .daily-form input[type="date"] { grid-column: span 3; }
     .daily-stats { grid-template-columns: repeat(3, 1fr); }
     .daily-stat-val { font-size: 22px; }
-    .daily-chart-wrap { height: 200px; padding: 6px; }
+    .daily-chart-wrap { height: 230px; padding: 8px 6px 4px; }
     .daily-chart-header { justify-content: flex-start; }
     .range-btn { padding: 3px 7px; font-size: 8px; }
     .split-row { grid-template-columns: 1fr 1fr 1fr; }
     .split-row-label { grid-column: span 3; }
     .split-row span { display: none; }
+    .daily-card .card-title { font-size: 22px; letter-spacing: 3px; }
+    .daily-card .card-title i { font-size: 20px; }
   }
 
   .improve-badge {
@@ -876,123 +895,6 @@
     font-family: 'Syne', sans-serif;
   }
   #toast.show { transform: translateY(0); opacity: 1; }
-
-  /* ─── FOCUS TIMER ───────────────────── */
-  .timer-card { grid-column: span 12; }
-
-  .timer-label-row { margin-bottom: 18px; }
-  .timer-label-row input { text-align: center; }
-
-  .timer-display {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: clamp(56px, 13vw, 118px);
-    line-height: 1;
-    letter-spacing: 4px;
-    text-align: center;
-    color: var(--text);
-    font-variant-numeric: tabular-nums;
-    white-space: nowrap;
-    transition: color 0.3s, text-shadow 0.3s;
-  }
-  .timer-display.running {
-    color: var(--lecture-color);
-    text-shadow: 0 0 50px rgba(255,121,198,0.35);
-  }
-  .timer-display.paused {
-    color: var(--accent);
-    text-shadow: 0 0 30px rgba(240,192,64,0.2);
-  }
-  .timer-status {
-    text-align: center;
-    font-family: 'Space Mono', monospace;
-    font-size: 10px;
-    letter-spacing: 2px;
-    color: var(--muted);
-    margin-top: 10px;
-    text-transform: uppercase;
-  }
-  .timer-btns {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-    justify-content: center;
-    margin-top: 22px;
-  }
-  .timer-btn-start  { background: var(--lecture-color); }
-  .timer-btn-pause  { background: var(--accent); }
-  .timer-btn-resume { background: var(--green); }
-  .timer-btn-stop   { background: var(--accent3); }
-  .timer-btn-cancel {
-    background: transparent;
-    border: 1px solid var(--red);
-    color: var(--red);
-  }
-  .timer-btn-cancel:hover { background: var(--red); color: #fff; }
-  .timer-totals {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 8px;
-    margin-top: 24px;
-  }
-  .timer-log-wrap { margin-top: 24px; }
-  .timer-fs-hint {
-    display: none;
-    text-align: center;
-    font-family: 'Space Mono', monospace;
-    font-size: 10px;
-    color: var(--muted);
-    letter-spacing: 1px;
-    margin-top: 24px;
-    opacity: 0.7;
-  }
-  .timer-fs-hint b { color: var(--accent); }
-
-  /* ─── FULLSCREEN MODE ───────────────────── */
-  .timer-card:fullscreen,
-  .timer-card:-webkit-full-screen {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    width: 100vw;
-    height: 100vh;
-    padding: 6vh 6vw;
-    border: none;
-    border-radius: 0;
-    overflow: hidden;
-    background:
-      radial-gradient(circle at 50% 42%, rgba(255,121,198,0.10), transparent 62%),
-      var(--bg);
-  }
-  .timer-card:fullscreen:hover { border: none; }
-  .timer-card:fullscreen .card-title,
-  .timer-card:fullscreen .timer-log-wrap { display: none; }
-  .timer-card:fullscreen .timer-fs-hint  { display: block; }
-  .timer-card:fullscreen .timer-display  { font-size: clamp(80px, 19vw, 280px); }
-  .timer-card:fullscreen .timer-label-row input {
-    background: transparent;
-    border-color: transparent;
-    font-size: 17px;
-    font-weight: 600;
-    color: var(--muted);
-    letter-spacing: 1px;
-  }
-  .timer-card:fullscreen .timer-label-row input:focus { border-color: transparent; }
-  .timer-card:fullscreen .timer-label-row input::placeholder { color: var(--muted); opacity: 0.5; }
-  .timer-card:fullscreen .timer-status { font-size: 12px; letter-spacing: 4px; margin-top: 18px; }
-  .timer-card:fullscreen .timer-btns { margin-top: 40px; gap: 14px; }
-  .timer-card:fullscreen .timer-btns .btn { padding: 14px 30px; font-size: 15px; }
-  .timer-card:fullscreen .timer-totals {
-    max-width: 620px;
-    width: 100%;
-    margin: 46px auto 0;
-  }
-  .timer-card:fullscreen .timer-totals .daily-stat { border-color: transparent; background: transparent; }
-  .timer-card:fullscreen .timer-totals .daily-stat-val { font-size: 34px; }
-
-  @media (max-width: 600px) {
-    .timer-totals { grid-template-columns: repeat(2, 1fr); }
-    .timer-display { letter-spacing: 2px; }
-  }
 </style>
 </head>
 <body>
@@ -1091,34 +993,37 @@
 
   <div class="section-divider" style="grid-column:span 12" data-label="daily log — study & skills/exercise"></div>
 
-  <!-- DAILY LOG: STUDY (top) -->
+  <!-- DAILY LOG: STUDY (top) — PINK + YELLOW -->
   <div class="card daily-card">
-    <div class="card-title" style="color:#4ecdc4"><i class="fa-solid fa-book-open-reader"></i> Study Hours</div>
+    <div class="card-title">
+      <i class="fa-solid fa-book-open-reader" style="color:#ec4899"></i>
+      <span>Study Hours</span>
+    </div>
     <div class="daily-form">
       <input type="date" id="studyDateInput" />
       <input type="number" id="studyHoursInput" placeholder="HH" min="0" max="24" />
       <input type="number" id="studyMinutesInput" placeholder="MM" min="0" max="59" />
-      <button class="btn" style="background:#4ecdc4" onclick="addDailyLog('study')"><i class="fa-solid fa-plus"></i> Log</button>
+      <button class="btn" style="background:#ec4899" onclick="addDailyLog('study')"><i class="fa-solid fa-plus"></i> Log</button>
     </div>
     <div class="daily-stats">
       <div class="daily-stat">
-        <div class="daily-stat-val" id="studyTotal" style="color:#4ecdc4">0</div>
+        <div class="daily-stat-val" id="studyTotal" style="color:#ec4899">0</div>
         <div class="daily-stat-label">TOTAL HRS</div>
       </div>
       <div class="daily-stat">
-        <div class="daily-stat-val" id="studyToday" style="color:#4ecdc4">0</div>
+        <div class="daily-stat-val" id="studyToday" style="color:#ec4899">0</div>
         <div class="daily-stat-label">TODAY</div>
       </div>
       <div class="daily-stat">
-        <div class="daily-stat-val" id="study7dAvg" style="color:#4ecdc4">0</div>
+        <div class="daily-stat-val" id="study7dAvg" style="color:#ec4899">0</div>
         <div class="daily-stat-label">7-DAY AVG</div>
       </div>
       <div class="daily-stat">
-        <div class="daily-stat-val" id="studyAvg" style="color:#4ecdc4">0</div>
+        <div class="daily-stat-val" id="studyAvg" style="color:#ec4899">0</div>
         <div class="daily-stat-label">AVG / DAY</div>
       </div>
       <div class="daily-stat">
-        <div class="daily-stat-val" id="studyDays" style="color:#4ecdc4">0</div>
+        <div class="daily-stat-val" id="studyDays" style="color:#ec4899">0</div>
         <div class="daily-stat-label">DAYS LOGGED</div>
       </div>
     </div>
@@ -1146,39 +1051,45 @@
     </div>
   </div>
 
-  <!-- DAILY LOG: SKILLS / EXERCISE (below) -->
+  <!-- DAILY LOG: SKILLS / EXERCISE — BLUE + GREEN -->
   <div class="card daily-card">
-    <div class="card-title" style="color:#ff6b35"><i class="fa-solid fa-dumbbell"></i> Skills / Exercise Hours</div>
+    <div class="card-title">
+      <i class="fa-solid fa-dumbbell" style="color:#ef4444"></i>
+      <span>Skills / Exercise Hours</span>
+    </div>
     <div class="daily-form">
       <input type="date" id="skillsDateInput" />
       <input type="number" id="skillsHoursInput" placeholder="HH" min="0" max="24" />
       <input type="number" id="skillsMinutesInput" placeholder="MM" min="0" max="59" />
-      <button class="btn" style="background:#ff6b35" onclick="addDailyLog('skills')"><i class="fa-solid fa-plus"></i> Log</button>
+      <button class="btn" style="background:#ef4444" onclick="addDailyLog('skills')"><i class="fa-solid fa-plus"></i> Log</button>
     </div>
     <div class="daily-stats">
       <div class="daily-stat">
-        <div class="daily-stat-val" id="skillsTotal" style="color:#ff6b35">0</div>
+        <div class="daily-stat-val" id="skillsTotal" style="color:#ef4444">0</div>
         <div class="daily-stat-label">TOTAL HRS</div>
       </div>
       <div class="daily-stat">
-        <div class="daily-stat-val" id="skillsToday" style="color:#ff6b35">0</div>
+        <div class="daily-stat-val" id="skillsToday" style="color:#ef4444">0</div>
         <div class="daily-stat-label">TODAY</div>
       </div>
       <div class="daily-stat">
-        <div class="daily-stat-val" id="skills7dAvg" style="color:#ff6b35">0</div>
+        <div class="daily-stat-val" id="skills7dAvg" style="color:#ef4444">0</div>
         <div class="daily-stat-label">7-DAY AVG</div>
       </div>
       <div class="daily-stat">
-        <div class="daily-stat-val" id="skillsAvg" style="color:#ff6b35">0</div>
+        <div class="daily-stat-val" id="skillsAvg" style="color:#ef4444">0</div>
         <div class="daily-stat-label">AVG / DAY</div>
       </div>
       <div class="daily-stat">
-        <div class="daily-stat-val" id="skillsDays" style="color:#ff6b35">0</div>
+        <div class="daily-stat-val" id="skillsDays" style="color:#ef4444">0</div>
         <div class="daily-stat-label">DAYS LOGGED</div>
       </div>
     </div>
     <div class="daily-chart-header">
-      <div class="daily-chart-label"><i class="fa-solid fa-chart-simple"></i> Daily hours</div>
+      <div class="daily-chart-label">
+        <i class="fa-solid fa-chart-simple"></i> Daily hours
+        <span class="daily-chart-hint">(click a bar to split into Skills / Exercise)</span>
+      </div>
       <div class="range-toggle" data-type="skills">
         <button class="range-btn" data-range="7"  onclick="setDailyRange('skills',7)">7D</button>
         <button class="range-btn active" data-range="30" onclick="setDailyRange('skills',30)">30D</button>
@@ -1198,33 +1109,36 @@
     </div>
   </div>
 
-  <!-- DAILY LOG: COMBINED -->
+  <!-- DAILY LOG: COMBINED — CYAN + ORANGE -->
   <div class="card daily-card">
-    <div class="card-title" style="color:#bd93f9"><i class="fa-solid fa-layer-group"></i> All Day Hours (Study + Skills)</div>
+    <div class="card-title">
+      <i class="fa-solid fa-layer-group" style="color:#a855f7"></i>
+      <span>All Day Hours (Study + Skills)</span>
+    </div>
     <div class="daily-stats">
       <div class="daily-stat">
-        <div class="daily-stat-val" id="combinedTotal" style="color:#bd93f9">0</div>
+        <div class="daily-stat-val" id="combinedTotal" style="color:#a855f7">0</div>
         <div class="daily-stat-label">TOTAL HRS</div>
       </div>
       <div class="daily-stat">
-        <div class="daily-stat-val" id="combinedToday" style="color:#bd93f9">0</div>
+        <div class="daily-stat-val" id="combinedToday" style="color:#a855f7">0</div>
         <div class="daily-stat-label">TODAY</div>
       </div>
       <div class="daily-stat">
-        <div class="daily-stat-val" id="combined7dAvg" style="color:#bd93f9">0</div>
+        <div class="daily-stat-val" id="combined7dAvg" style="color:#a855f7">0</div>
         <div class="daily-stat-label">7-DAY AVG</div>
       </div>
       <div class="daily-stat">
-        <div class="daily-stat-val" id="combinedAvg" style="color:#bd93f9">0</div>
+        <div class="daily-stat-val" id="combinedAvg" style="color:#a855f7">0</div>
         <div class="daily-stat-label">AVG / DAY</div>
       </div>
       <div class="daily-stat">
-        <div class="daily-stat-val" id="combinedDays" style="color:#bd93f9">0</div>
+        <div class="daily-stat-val" id="combinedDays" style="color:#a855f7">0</div>
         <div class="daily-stat-label">DAYS LOGGED</div>
       </div>
     </div>
     <div class="daily-chart-header">
-      <div class="daily-chart-label"><i class="fa-solid fa-chart-simple"></i> Combined daily hours</div>
+      <div class="daily-chart-label"><i class="fa-solid fa-chart-simple"></i> Combined daily hours — Study vs Skills</div>
       <div class="range-toggle" data-type="combined">
         <button class="range-btn" data-range="7"  onclick="setDailyRange('combined',7)">7D</button>
         <button class="range-btn active" data-range="30" onclick="setDailyRange('combined',30)">30D</button>
@@ -1298,72 +1212,18 @@
     <div class="subjects-grid" id="subjectsGrid"></div>
   </div>
 
-  <div class="section-divider" style="grid-column:span 12" data-label="focus timer"></div>
-
-  <!-- FOCUS TIMER -->
-  <div class="card timer-card" id="timerCard">
-    <div class="card-title" style="color:#ff79c6"><i class="fa-solid fa-stopwatch"></i> Focus Timer</div>
-
-    <div class="timer-label-row">
-      <input type="text" id="timerLabel" placeholder="What are you studying? (optional)" maxlength="40" />
-    </div>
-
-    <div class="timer-display" id="timerDisplay">00:00:00</div>
-    <div class="timer-status" id="timerStatus">IDLE — press Start to begin</div>
-
-    <div class="timer-btns">
-      <button class="btn timer-btn-start"   id="timerStartBtn"  onclick="timerStart()"><i class="fa-solid fa-play"></i> Start</button>
-      <button class="btn timer-btn-pause"   id="timerPauseBtn"  onclick="timerPause()"  style="display:none"><i class="fa-solid fa-pause"></i> Pause</button>
-      <button class="btn timer-btn-resume"  id="timerResumeBtn" onclick="timerResume()" style="display:none"><i class="fa-solid fa-play"></i> Resume</button>
-      <button class="btn timer-btn-stop"    id="timerStopBtn"   onclick="timerFinish()" style="display:none"><i class="fa-solid fa-flag-checkered"></i> Finish &amp; Log</button>
-      <button class="btn timer-btn-cancel"  id="timerCancelBtn" onclick="timerDiscard()" style="display:none"><i class="fa-solid fa-xmark"></i> Discard</button>
-    </div>
-
-    <div class="timer-totals">
-      <div class="daily-stat">
-        <div class="daily-stat-val" id="timerToday" style="color:#ff79c6">0m</div>
-        <div class="daily-stat-label">TODAY</div>
-      </div>
-      <div class="daily-stat">
-        <div class="daily-stat-val" id="timerTotal" style="color:#ff79c6">0m</div>
-        <div class="daily-stat-label">ALL TIME</div>
-      </div>
-      <div class="daily-stat">
-        <div class="daily-stat-val" id="timerSessions" style="color:#ff79c6">0</div>
-        <div class="daily-stat-label">SESSIONS</div>
-      </div>
-      <div class="daily-stat">
-        <div class="daily-stat-val" id="timerDays" style="color:#ff79c6">0</div>
-        <div class="daily-stat-label">DAYS LOGGED</div>
-      </div>
-    </div>
-
-    <div class="timer-fs-hint">Press <b>Esc</b> to exit fullscreen — the timer will pause</div>
-
-    <div class="timer-log-wrap">
-      <div class="daily-chart-label" style="margin-bottom:8px"><i class="fa-solid fa-list"></i> Daily timer log</div>
-      <div class="daily-table-wrap">
-        <table>
-          <thead><tr><th>DATE</th><th>TOTAL</th><th>SESSIONS</th><th></th></tr></thead>
-          <tbody id="timerLogBody"></tbody>
-        </table>
-        <div class="empty-state" id="timerEmpty">No timer sessions yet. Hit Start to begin your first focus block!</div>
-      </div>
-    </div>
-  </div>
-
 </main>
 
 <!-- SPLIT MODAL -->
 <div class="split-modal-overlay" id="splitModal" onclick="if(event.target===this)closeSplitModal()">
   <div class="split-modal-box">
-    <div class="split-modal-title"><i class="fa-solid fa-scissors"></i> Split Study Time</div>
+    <div class="split-modal-title"><i class="fa-solid fa-scissors"></i> Split Hours</div>
     <div class="split-modal-date" id="splitDateLabel"></div>
     <div class="split-modal-total" id="splitTotalLabel"></div>
 
     <div class="split-row">
-      <div class="split-row-label" style="color:#ff79c6">
-        <i class="fa-solid fa-chalkboard-user"></i> Lecture
+      <div class="split-row-label" id="splitRowLabel1" style="color:#ec4899">
+        <i class="fa-solid fa-chalkboard-user" id="splitRowIcon1"></i> <span id="splitRowText1">Lecture</span>
       </div>
       <input type="number" id="splitLecH" min="0" max="24" placeholder="0">
       <span>h</span>
@@ -1372,8 +1232,8 @@
     </div>
 
     <div class="split-row">
-      <div class="split-row-label" style="color:#a3e635">
-        <i class="fa-solid fa-book-open-reader"></i> Self Study
+      <div class="split-row-label" id="splitRowLabel2" style="color:#eab308">
+        <i class="fa-solid fa-book-open-reader" id="splitRowIcon2"></i> <span id="splitRowText2">Self Study</span>
       </div>
       <input type="number" id="splitSelfH" min="0" max="24" placeholder="0">
       <span>h</span>
@@ -1394,9 +1254,56 @@
 <div id="toast"></div>
 
 <script>
-// ─── UNIQUE SPLIT COLORS (only used here) ─────────────────────────────────────
-const LECTURE_COLOR = '#ff79c6';   // pink — unique to lecture split
-const SELF_COLOR    = '#a3e635';   // lime — unique to self-study split
+// ─── REGISTER DATALABELS PLUGIN ──────────────────────────────────────────────
+if (typeof ChartDataLabels !== 'undefined') {
+  Chart.register(ChartDataLabels);
+}
+
+// ─── SECTION PALETTES ────────────────────────────────────────────────────────
+const STUDY_COLOR     = '#ec4899';
+const STUDY_LECTURE   = '#ec4899';
+const STUDY_SELF      = '#eab308';
+
+const SKILLS_COLOR    = '#ef4444';
+const SKILLS_SKILLS   = '#3b82f6';
+const SKILLS_EXERCISE = '#10b981';
+
+const COMBINED_COLOR  = '#a855f7';
+const COMBINED_STUDY  = '#06b6d4';
+const COMBINED_SKILLS = '#f97316';
+
+// ─── HELPERS FOR DATALABELS ──────────────────────────────────────────────────
+function getLabelColor() {
+  return document.documentElement.getAttribute('data-theme') === 'light' ? '#1a1a2e' : '#e8e8f0';
+}
+function fmtHoursShort(val) {
+  if (!val || val < 0.0084) return '';
+  const h = Math.floor(val);
+  const m = Math.round((val - h) * 60);
+  if (h === 0) return m + 'm';
+  if (m === 0) return h + 'h';
+  return h + 'h' + m + 'm';
+}
+// Show only on the topmost visible segment of a stacked bar
+function isTopVisibleSegment(ctx) {
+  const { datasetIndex, dataIndex, chart } = ctx;
+  const myValue = chart.data.datasets[datasetIndex].data[dataIndex];
+  if (!myValue || myValue <= 0) return false;
+  for (let i = datasetIndex + 1; i < chart.data.datasets.length; i++) {
+    const v = chart.data.datasets[i].data[dataIndex];
+    if (typeof v === 'number' && v > 0) return false;
+  }
+  return true;
+}
+function totalAtIndex(ctx) {
+  const { dataIndex, chart } = ctx;
+  let total = 0;
+  chart.data.datasets.forEach(ds => {
+    const v = ds.data[dataIndex];
+    if (typeof v === 'number') total += v;
+  });
+  return total;
+}
 
 // ─── SUBJECTS CONFIG ───────────────────────────────────────────────────────────
 const SUBJECTS = [
@@ -1427,14 +1334,14 @@ const MOTIVATIONS = [
 const save = (k,v) => localStorage.setItem(k, JSON.stringify(v));
 const load = (k, def) => { try { const v=localStorage.getItem(k); return v?JSON.parse(v):def; } catch { return def; } };
 
-// ─── TIME FORMATTERS (h + m) ──────────────────────────────────────────────────
+// ─── TIME FORMATTERS ──────────────────────────────────────────────────────────
 function decimalToHM(d) {
   const h = Math.floor(d);
   const m = Math.round((d - h) * 60);
   return { h, m };
 }
 function fmtHM(d) {
-  if(!d || d < 0.0084) return '0m';   // less than ~30s
+  if(!d || d < 0.0084) return '0m';
   const { h, m } = decimalToHM(d);
   if(h === 0) return `${m}m`;
   if(m === 0) return `${h}h`;
@@ -1493,7 +1400,7 @@ function saveCountdownDates() {
   showToast('Countdown updated!');
 }
 
-// ─── DAILY LOG (STUDY / SKILLS / COMBINED) ───────────────────────────────────
+// ─── DAILY LOG ────────────────────────────────────────────────────────────────
 let studyChart = null;
 let skillsChart = null;
 let combinedChart = null;
@@ -1507,7 +1414,11 @@ const DAILY_CONFIG = {
     tableId:    'studyTableBody',
     emptyId:    'studyEmpty',
     chartId:    'studyChart',
-    color:      '#4ecdc4',
+    color:      STUDY_COLOR,
+    splitKey1:  'lecture',
+    splitKey2:  'selfStudy',
+    splitColor1: STUDY_LECTURE,
+    splitColor2: STUDY_SELF,
     totalId:    'studyTotal',
     todayId:    'studyToday',
     avg7Id:     'study7dAvg',
@@ -1525,7 +1436,11 @@ const DAILY_CONFIG = {
     tableId:    'skillsTableBody',
     emptyId:    'skillsEmpty',
     chartId:    'skillsChart',
-    color:      '#ff6b35',
+    color:      SKILLS_COLOR,
+    splitKey1:  'skillsSplit',
+    splitKey2:  'exerciseSplit',
+    splitColor1: SKILLS_SKILLS,
+    splitColor2: SKILLS_EXERCISE,
     totalId:    'skillsTotal',
     todayId:    'skillsToday',
     avg7Id:     'skills7dAvg',
@@ -1539,7 +1454,7 @@ const DAILY_CONFIG = {
     tableId:    'combinedTableBody',
     emptyId:    'combinedEmpty',
     chartId:    'combinedChart',
-    color:      '#bd93f9',
+    color:      COMBINED_COLOR,
     totalId:    'combinedTotal',
     todayId:    'combinedToday',
     avg7Id:     'combined7dAvg',
@@ -1576,8 +1491,8 @@ function addDailyLog(type) {
     const oldHours = logs[idx].hours;
     logs[idx].hours = +hours.toFixed(2);
     if(Math.abs(oldHours - hours) > 0.008) {
-      delete logs[idx].lecture;
-      delete logs[idx].selfStudy;
+      delete logs[idx][cfg.splitKey1];
+      delete logs[idx][cfg.splitKey2];
     }
   } else {
     logs.push({ date, hours: +hours.toFixed(2) });
@@ -1630,10 +1545,10 @@ function renderDaily(type) {
   [...sorted].reverse().forEach(log => {
     const d = new Date(log.date + 'T00:00:00');
     const pretty = d.toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' });
-    const split = (log.lecture != null && log.selfStudy != null)
+    const split = (log[cfg.splitKey1] != null && log[cfg.splitKey2] != null)
       ? `<div style="font-size:9px;font-family:'Space Mono',monospace;margin-top:3px;color:var(--muted)">
-           <span style="color:${LECTURE_COLOR}">L: ${fmtHM(log.lecture)}</span> ·
-           <span style="color:${SELF_COLOR}">S: ${fmtHM(log.selfStudy)}</span>
+           <span style="color:${cfg.splitColor1}">${cfg.splitKey1 === 'lecture' ? 'L' : 'Sk'}: ${fmtHM(log[cfg.splitKey1])}</span> ·
+           <span style="color:${cfg.splitColor2}">${cfg.splitKey2 === 'selfStudy' ? 'S' : 'Ex'}: ${fmtHM(log[cfg.splitKey2])}</span>
          </div>` : '';
     const tr = document.createElement('tr');
     tr.innerHTML = `
@@ -1687,9 +1602,9 @@ function renderCombined() {
     const tr = document.createElement('tr');
     tr.innerHTML = `
       <td style="font-family:'Space Mono',monospace;font-size:10px;color:var(--muted)">${pretty}</td>
-      <td><span class="score-badge" style="background:#4ecdc422;color:#4ecdc4">${fmtHM(log.study)}</span></td>
-      <td><span class="score-badge" style="background:#ff6b3522;color:#ff6b35">${fmtHM(log.skills)}</span></td>
-      <td><span class="score-badge" style="background:#bd93f922;color:#bd93f9">${fmtHM(log.hours)}</span></td>`;
+      <td><span class="score-badge" style="background:${COMBINED_STUDY}22;color:${COMBINED_STUDY}">${fmtHM(log.study)}</span></td>
+      <td><span class="score-badge" style="background:${COMBINED_SKILLS}22;color:${COMBINED_SKILLS}">${fmtHM(log.skills)}</span></td>
+      <td><span class="score-badge" style="background:${cfg.color}22;color:${cfg.color}">${fmtHM(log.hours)}</span></td>`;
     tbody.appendChild(tr);
   });
 
@@ -1737,41 +1652,82 @@ function renderDailyChart(type, logs) {
     return d.toLocaleDateString('en-IN', { day:'numeric', month:'short' });
   });
 
-  const isStudy = (type === 'study');
+  const isSplit    = (type === 'study' || type === 'skills');
+  const isCombined = (type === 'combined');
+  const isStacked  = isSplit || isCombined;
+
   let datasets;
 
-  if(isStudy) {
-    const lectureData   = filtered.map(l => l.lecture   || 0);
-    const selfData      = filtered.map(l => l.selfStudy || 0);
-    const unassignedData= filtered.map(l => Math.max(0, l.hours - (l.lecture||0) - (l.selfStudy||0)));
+  if(isCombined) {
+    datasets = [
+      {
+        label: 'Study',
+        data: filtered.map(l => l.study),
+        backgroundColor: COMBINED_STUDY,
+        borderColor: COMBINED_STUDY,
+        borderWidth: 0,
+        stack: 'combined',
+        maxBarThickness: 40,
+        borderRadius: (c) => {
+          const l = filtered[c.dataIndex];
+          return (l.skills && l.skills > 0)
+            ? { topLeft: 0, topRight: 0, bottomLeft: 5, bottomRight: 5 }
+            : 5;
+        }
+      },
+      {
+        label: 'Skills',
+        data: filtered.map(l => l.skills),
+        backgroundColor: COMBINED_SKILLS,
+        borderColor: COMBINED_SKILLS,
+        borderWidth: 0,
+        stack: 'combined',
+        maxBarThickness: 40,
+        borderRadius: (c) => {
+          const l = filtered[c.dataIndex];
+          return (l.study && l.study > 0)
+            ? { topLeft: 5, topRight: 5, bottomLeft: 0, bottomRight: 0 }
+            : 5;
+        }
+      }
+    ];
+  } else if(isSplit) {
+    const part1Data   = filtered.map(l => l[cfg.splitKey1] || 0);
+    const part2Data   = filtered.map(l => l[cfg.splitKey2] || 0);
+    const unassignedData = filtered.map(l =>
+      Math.max(0, l.hours - (l[cfg.splitKey1]||0) - (l[cfg.splitKey2]||0))
+    );
+
+    const label1 = type === 'study' ? 'Lecture' : 'Skills';
+    const label2 = type === 'study' ? 'Self Study' : 'Exercise';
 
     datasets = [
       {
-        label: 'Lecture',
-        data: lectureData,
-        backgroundColor: LECTURE_COLOR,
-        borderColor: LECTURE_COLOR,
+        label: label1,
+        data: part1Data,
+        backgroundColor: cfg.splitColor1,
+        borderColor: cfg.splitColor1,
         borderWidth: 0,
-        stack: 'study',
+        stack: type,
         maxBarThickness: 40,
         borderRadius: { topLeft: 0, topRight: 0, bottomLeft: 5, bottomRight: 5 }
       },
       {
-        label: 'Self Study',
-        data: selfData,
-        backgroundColor: SELF_COLOR,
-        borderColor: SELF_COLOR,
+        label: label2,
+        data: part2Data,
+        backgroundColor: cfg.splitColor2,
+        borderColor: cfg.splitColor2,
         borderWidth: 0,
-        stack: 'study',
+        stack: type,
         maxBarThickness: 40
       },
       {
         label: 'Unassigned',
         data: unassignedData,
-        backgroundColor: cfg.color + 'aa',
-        borderColor: cfg.color,
-        borderWidth: 1,
-        stack: 'study',
+        backgroundColor: '#6b7280',
+        borderColor: '#6b7280',
+        borderWidth: 0,
+        stack: type,
         maxBarThickness: 40,
         borderRadius: { topLeft: 5, topRight: 5, bottomLeft: 0, bottomRight: 0 }
       }
@@ -1791,23 +1747,28 @@ function renderDailyChart(type, logs) {
   const prev = cfg.chartRef();
   if(prev) prev.destroy();
 
+  const labelColor = getLabelColor();
+
   const chart = new Chart(ctx, {
     type: 'bar',
     data: { labels, datasets },
     options: {
       responsive: true,
       maintainAspectRatio: false,
-      onClick: isStudy ? (e, elements) => {
+      layout: {
+        padding: { top: 26 }
+      },
+      onClick: isSplit ? (e, elements) => {
         if(elements.length > 0) {
           const idx = elements[0].index;
-          if(filtered[idx]) openSplitModal(filtered[idx].date);
+          if(filtered[idx]) openSplitModal(filtered[idx].date, type);
         }
       } : undefined,
-      onHover: isStudy ? (e, elements) => {
+      onHover: isSplit ? (e, elements) => {
         e.native.target.style.cursor = elements.length > 0 ? 'pointer' : 'default';
       } : undefined,
       plugins: {
-        legend: isStudy ? {
+        legend: isStacked ? {
           display: true,
           position: 'bottom',
           labels: {
@@ -1828,39 +1789,63 @@ function renderDailyChart(type, logs) {
           callbacks: {
             title: (items) => {
               const l = filtered[items[0].dataIndex];
-              if(isStudy) {
-                const d = new Date(l.date + 'T00:00:00');
-                return d.toLocaleDateString('en-IN', { weekday:'short', day:'numeric', month:'short', year:'numeric' });
-              }
-              return l.date;
+              const d = new Date(l.date + 'T00:00:00');
+              return d.toLocaleDateString('en-IN', { weekday:'short', day:'numeric', month:'short', year:'numeric' });
             },
-            beforeBody: isStudy ? (items) => {
+            beforeBody: isStacked ? (items) => {
               const l = filtered[items[0].dataIndex];
-              return [`Total Study: ${fmtHM(l.hours)}`];
+              return [`Total: ${fmtHM(l.hours)}`];
             } : undefined,
             label: (item) => {
-              if(isStudy) {
-                if(item.raw === 0) return null;   // hide 0-value segments
+              if(isStacked) {
+                if(item.raw === 0) return null;
                 return `  ${item.dataset.label}: ${fmtHM(item.raw)}`;
-              }
-              if(type === 'combined') {
-                const l = filtered[item.dataIndex];
-                return [`  Total: ${fmtHM(item.raw)}`, `  Study: ${fmtHM(l.study)}  ·  Skills: ${fmtHM(l.skills)}`];
               }
               return `  ${fmtHM(item.raw)}`;
             },
-            afterBody: isStudy ? () => ['', 'Click bar to split'] : undefined
+            afterBody: isSplit ? () => ['', 'Click bar to split'] : undefined
+          }
+        },
+        // ─── DATALABELS ON BARS ───
+        datalabels: {
+          color: labelColor,
+          anchor: 'end',
+          align: 'top',
+          offset: 4,
+          clamp: true,
+          clip: false,
+          font: {
+            family: 'Space Mono',
+            size: 10,
+            weight: '700'
+          },
+          textStrokeColor: getLabelColor() === '#1a1a2e' ? '#ffffff' : '#0a0a0f',
+          textStrokeWidth: 3,
+          display: (ctx) => {
+            const val = ctx.dataset.data[ctx.dataIndex];
+            if (!val || val <= 0) return false;
+            if (isStacked) {
+              return isTopVisibleSegment(ctx);
+            }
+            return true;
+          },
+          formatter: (value, ctx) => {
+            if (isStacked) {
+              const total = totalAtIndex(ctx);
+              return fmtHoursShort(total);
+            }
+            return fmtHoursShort(value);
           }
         }
       },
       scales: {
         x: {
-          stacked: isStudy,
+          stacked: isStacked,
           grid: { display: false },
           ticks: { color: '#6b6b8a', font: { family: 'Space Mono', size: 8 }, maxRotation: 0, autoSkip: true, maxTicksLimit: 12 }
         },
         y: {
-          stacked: isStudy,
+          stacked: isStacked,
           beginAtZero: true,
           grid: { color: 'rgba(255,255,255,0.05)' },
           ticks: { color: '#6b6b8a', font: { family: 'Space Mono', size: 8 } }
@@ -1886,27 +1871,51 @@ function initDaily() {
   renderCombined();
 }
 
-// ─── SPLIT MODAL ──────────────────────────────────────────────────────────────
+// ─── SPLIT MODAL ─────────────────────────────────────────────────────────────
 let currentSplitDate = null;
+let currentSplitType = null;
 
-function openSplitModal(date) {
-  const logs = load('daily_study', []);
-  const log = logs.find(l => l.date === date);
+function openSplitModal(date, type) {
+  const cfg = DAILY_CONFIG[type];
+  if(!cfg || !cfg.storageKey) { showToast('Split not supported here.'); return; }
+
+  const logs = load(cfg.storageKey, []);
+  const log  = logs.find(l => l.date === date);
   if(!log) { showToast('No entry for this date.'); return; }
 
   currentSplitDate = date;
+  currentSplitType = type;
+
   const d = new Date(date + 'T00:00:00');
   document.getElementById('splitDateLabel').textContent =
     d.toLocaleDateString('en-IN', { weekday:'short', day:'numeric', month:'short', year:'numeric' });
-  document.getElementById('splitTotalLabel').textContent = 'Total study: ' + fmtHM(log.hours);
+  document.getElementById('splitTotalLabel').textContent = 'Total logged: ' + fmtHM(log.hours);
 
-  const lecD  = log.lecture   != null ? decimalToHM(log.lecture)   : { h:0, m:0 };
-  const selfD = log.selfStudy != null ? decimalToHM(log.selfStudy) : { h:0, m:0 };
+  if(type === 'study') {
+    document.getElementById('splitRowText1').textContent = 'Lecture';
+    document.getElementById('splitRowIcon1').className    = 'fa-solid fa-chalkboard-user';
+    document.getElementById('splitRowLabel1').style.color = STUDY_LECTURE;
 
-  document.getElementById('splitLecH').value  = lecD.h  || '';
-  document.getElementById('splitLecM').value  = lecD.m  || '';
-  document.getElementById('splitSelfH').value = selfD.h || '';
-  document.getElementById('splitSelfM').value = selfD.m || '';
+    document.getElementById('splitRowText2').textContent = 'Self Study';
+    document.getElementById('splitRowIcon2').className    = 'fa-solid fa-book-open-reader';
+    document.getElementById('splitRowLabel2').style.color = STUDY_SELF;
+  } else if(type === 'skills') {
+    document.getElementById('splitRowText1').textContent = 'Skills';
+    document.getElementById('splitRowIcon1').className    = 'fa-solid fa-lightbulb';
+    document.getElementById('splitRowLabel1').style.color = SKILLS_SKILLS;
+
+    document.getElementById('splitRowText2').textContent = 'Exercise';
+    document.getElementById('splitRowIcon2').className    = 'fa-solid fa-dumbbell';
+    document.getElementById('splitRowLabel2').style.color = SKILLS_EXERCISE;
+  }
+
+  const p1 = log[cfg.splitKey1] != null ? decimalToHM(log[cfg.splitKey1]) : { h:0, m:0 };
+  const p2 = log[cfg.splitKey2] != null ? decimalToHM(log[cfg.splitKey2]) : { h:0, m:0 };
+
+  document.getElementById('splitLecH').value  = p1.h || '';
+  document.getElementById('splitLecM').value  = p1.m || '';
+  document.getElementById('splitSelfH').value = p2.h || '';
+  document.getElementById('splitSelfM').value = p2.m || '';
   document.getElementById('splitMsg').textContent = '';
 
   document.getElementById('splitModal').classList.add('show');
@@ -1915,52 +1924,59 @@ function openSplitModal(date) {
 function closeSplitModal() {
   document.getElementById('splitModal').classList.remove('show');
   currentSplitDate = null;
+  currentSplitType = null;
 }
 
 function saveSplit() {
-  if(!currentSplitDate) return;
-  const logs = load('daily_study', []);
-  const idx = logs.findIndex(l => l.date === currentSplitDate);
+  if(!currentSplitDate || !currentSplitType) return;
+  const cfg  = DAILY_CONFIG[currentSplitType];
+  const logs = load(cfg.storageKey, []);
+  const idx  = logs.findIndex(l => l.date === currentSplitDate);
   if(idx === -1) { closeSplitModal(); return; }
 
-  const lh = parseInt(document.getElementById('splitLecH').value)  || 0;
-  const lm = parseInt(document.getElementById('splitLecM').value)  || 0;
-  const sh = parseInt(document.getElementById('splitSelfH').value) || 0;
-  const sm = parseInt(document.getElementById('splitSelfM').value) || 0;
+  const h1 = parseInt(document.getElementById('splitLecH').value)  || 0;
+  const m1 = parseInt(document.getElementById('splitLecM').value)  || 0;
+  const h2 = parseInt(document.getElementById('splitSelfH').value) || 0;
+  const m2 = parseInt(document.getElementById('splitSelfM').value) || 0;
 
-  if(lm > 59 || sm > 59) {
+  if(m1 > 59 || m2 > 59) {
     document.getElementById('splitMsg').textContent = 'Minutes must be 0–59.';
     return;
   }
 
-  const lec  = lh + lm/60;
-  const self = sh + sm/60;
+  const p1 = h1 + m1/60;
+  const p2 = h2 + m2/60;
   const total = logs[idx].hours;
 
-  if(Math.abs((lec + self) - total) > 0.02) {
+  if(Math.abs((p1 + p2) - total) > 0.02) {
     document.getElementById('splitMsg').textContent =
-      `Lecture + Self Study = ${fmtHM(lec + self)} but total is ${fmtHM(total)}. They must match.`;
+      `Both parts = ${fmtHM(p1 + p2)} but total is ${fmtHM(total)}. They must match.`;
     return;
   }
 
-  logs[idx].lecture   = +lec.toFixed(2);
-  logs[idx].selfStudy = +self.toFixed(2);
-  save('daily_study', logs);
+  logs[idx][cfg.splitKey1] = +p1.toFixed(2);
+  logs[idx][cfg.splitKey2] = +p2.toFixed(2);
+  save(cfg.storageKey, logs);
+
+  const savedType = currentSplitType;
   closeSplitModal();
-  renderDaily('study');
+  renderDaily(savedType);
   showToast('Split saved!');
 }
 
 function clearSplit() {
-  if(!currentSplitDate) return;
-  const logs = load('daily_study', []);
-  const idx = logs.findIndex(l => l.date === currentSplitDate);
+  if(!currentSplitDate || !currentSplitType) return;
+  const cfg  = DAILY_CONFIG[currentSplitType];
+  const logs = load(cfg.storageKey, []);
+  const idx  = logs.findIndex(l => l.date === currentSplitDate);
   if(idx === -1) { closeSplitModal(); return; }
-  delete logs[idx].lecture;
-  delete logs[idx].selfStudy;
-  save('daily_study', logs);
+  delete logs[idx][cfg.splitKey1];
+  delete logs[idx][cfg.splitKey2];
+  save(cfg.storageKey, logs);
+
+  const savedType = currentSplitType;
   closeSplitModal();
-  renderDaily('study');
+  renderDaily(savedType);
   showToast('Split cleared.');
 }
 
@@ -2069,6 +2085,9 @@ function renderChartType(type, mocks) {
   const data   = sorted.map(m=>m.marks);
   const prev   = cfg.chartRef();
   if(prev) prev.destroy();
+
+  const labelColor = getLabelColor();
+
   const chart = new Chart(ctx, {
     type:'line',
     data:{
@@ -2090,6 +2109,7 @@ function renderChartType(type, mocks) {
     options:{
       responsive:true,
       maintainAspectRatio:false,
+      layout: { padding: { top: 22 } },
       plugins:{
         legend:{display:false},
         tooltip:{
@@ -2103,6 +2123,18 @@ function renderChartType(type, mocks) {
             title: (items) => sorted[items[0].dataIndex].name,
             label: (item)  => `  Marks: ${item.raw}/${cfg.maxMarks}  ·  Date: ${sorted[item.dataIndex].date}`
           }
+        },
+        datalabels: {
+          color: labelColor,
+          anchor: 'end',
+          align: 'top',
+          offset: 4,
+          clamp: true,
+          clip: false,
+          font: { family: 'Space Mono', size: 10, weight: '700' },
+          textStrokeColor: labelColor === '#1a1a2e' ? '#ffffff' : '#0a0a0f',
+          textStrokeWidth: 3,
+          formatter: (value) => value > 0 ? value : ''
         }
       },
       scales:{
@@ -2442,6 +2474,11 @@ function toggleTheme() {
   const cur = document.documentElement.getAttribute('data-theme');
   document.documentElement.setAttribute('data-theme', cur==='light'?'dark':'light');
   localStorage.setItem('theme', cur==='light'?'dark':'light');
+  // Re-render charts so datalabel colour updates
+  renderDaily('study');
+  renderDaily('skills');
+  renderCombined();
+  renderMocks();
 }
 function loadTheme() {
   const t = localStorage.getItem('theme')||'dark';
@@ -2458,268 +2495,6 @@ function showToast(msg) {
   toastTimer = setTimeout(()=>t.classList.remove('show'), 2500);
 }
 
-// ─── FOCUS TIMER ──────────────────────────────────────────────────────────────
-const TIMER_SESSIONS_KEY = 'timer_sessions';
-const TIMER_LIVE_KEY     = 'timer_live';
-
-let timerRunning   = false;
-let timerStartedAt = null;
-let timerAccumMs   = 0;
-let timerTickId    = null;
-let timerSaveId    = null;
-let timerSessionDate  = null;
-let timerSessionLabel = '';
-
-function todayLocal() {
-  const d = new Date();
-  return d.getFullYear() + '-' +
-         String(d.getMonth() + 1).padStart(2, '0') + '-' +
-         String(d.getDate()).padStart(2, '0');
-}
-
-function fmtHMS(ms) {
-  const t = Math.max(0, Math.floor(ms / 1000));
-  const h = Math.floor(t / 3600);
-  const m = Math.floor((t % 3600) / 60);
-  const s = t % 60;
-  return String(h).padStart(2,'0') + ':' + String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
-}
-
-function fmtDurMs(ms) {
-  const h = ms / 3600000;
-  if (h < 0.0084) return Math.round(ms / 1000) + 's';
-  return fmtHM(h);
-}
-
-function currentElapsedMs() {
-  return timerAccumMs + (timerRunning && timerStartedAt ? Date.now() - timerStartedAt : 0);
-}
-
-function enterFullscreen() {
-  const el = document.getElementById('timerCard');
-  const req = el.requestFullscreen || el.webkitRequestFullscreen;
-  if (!req) return;
-  try { const p = req.call(el); if (p && p.catch) p.catch(() => {}); } catch (e) {}
-}
-function exitFullscreen() {
-  if (!document.fullscreenElement && !document.webkitFullscreenElement) return;
-  const fn = document.exitFullscreen || document.webkitExitFullscreen;
-  try { const p = fn.call(document); if (p && p.catch) p.catch(() => {}); } catch (e) {}
-}
-function onFullscreenChange() {
-  const el = document.fullscreenElement || document.webkitFullscreenElement;
-  if (el) return;
-  if (!timerRunning) return;
-  timerPause();
-  showToast('Fullscreen exited — timer paused.');
-}
-document.addEventListener('fullscreenchange', onFullscreenChange);
-document.addEventListener('webkitfullscreenchange', onFullscreenChange);
-
-function persistLive() {
-  save(TIMER_LIVE_KEY, {
-    running:  timerRunning,
-    accumMs:  Math.round(currentElapsedMs()),
-    label:    timerSessionLabel,
-    date:     timerSessionDate
-  });
-}
-
-function restoreLive() {
-  const live = load(TIMER_LIVE_KEY, null);
-  if (!live || live.accumMs < 1000) return;
-  timerAccumMs      = live.accumMs;
-  timerSessionLabel = live.label || '';
-  timerSessionDate  = live.date || todayLocal();
-  timerRunning      = false;
-  timerStartedAt    = null;
-  document.getElementById('timerLabel').value = timerSessionLabel;
-  showToast('Restored an unfinished session — Resume or Finish.');
-}
-
-function timerStart() {
-  if (timerRunning || timerAccumMs > 0) return;
-  timerSessionLabel = document.getElementById('timerLabel').value.trim();
-  timerSessionDate  = todayLocal();
-  timerAccumMs      = 0;
-  timerStartedAt    = Date.now();
-  timerRunning      = true;
-  enterFullscreen();
-  startTimerTick();
-  updateTimerUI();
-  updateTimerDisplay();
-  persistLive();
-}
-
-function timerResume() {
-  if (timerRunning || timerAccumMs <= 0) return;
-  timerStartedAt = Date.now();
-  timerRunning   = true;
-  enterFullscreen();
-  startTimerTick();
-  updateTimerUI();
-  updateTimerDisplay();
-  persistLive();
-}
-
-function timerPause() {
-  if (!timerRunning) return;
-  timerAccumMs += Date.now() - timerStartedAt;
-  timerStartedAt = null;
-  timerRunning   = false;
-  stopTimerTick();
-  updateTimerUI();
-  updateTimerDisplay();
-  persistLive();
-}
-
-function timerFinish() {
-  if (timerRunning) {
-    timerAccumMs += Date.now() - timerStartedAt;
-    timerStartedAt = null;
-    timerRunning   = false;
-  }
-  stopTimerTick();
-  const ms = timerAccumMs;
-  const label = timerSessionLabel;
-  const date  = timerSessionDate || todayLocal();
-  resetTimerState();
-  exitFullscreen();
-
-  if (ms < 1000) { showToast('Too short to log.'); return; }
-
-  const sessions = load(TIMER_SESSIONS_KEY, []);
-  sessions.push({
-    id: Date.now(),
-    date,
-    label: label || 'Focus session',
-    ms: Math.round(ms)
-  });
-  save(TIMER_SESSIONS_KEY, sessions);
-  renderTimer();
-  showToast('Logged ' + fmtDurMs(ms) + '!');
-}
-
-function timerDiscard() {
-  stopTimerTick();
-  resetTimerState();
-  exitFullscreen();
-  showToast('Session discarded.');
-}
-
-function resetTimerState() {
-  timerRunning      = false;
-  timerStartedAt    = null;
-  timerAccumMs      = 0;
-  timerSessionLabel = '';
-  timerSessionDate  = null;
-  localStorage.removeItem(TIMER_LIVE_KEY);
-  document.getElementById('timerLabel').value = '';
-  updateTimerUI();
-  updateTimerDisplay();
-}
-
-function startTimerTick() {
-  stopTimerTick();
-  timerTickId = setInterval(updateTimerDisplay, 200);
-  timerSaveId = setInterval(persistLive, 5000);
-}
-function stopTimerTick() {
-  clearInterval(timerTickId);
-  clearInterval(timerSaveId);
-  timerTickId = timerSaveId = null;
-}
-
-function updateTimerDisplay() {
-  document.getElementById('timerDisplay').textContent = fmtHMS(currentElapsedMs());
-}
-
-function updateTimerUI() {
-  const active = timerRunning || timerAccumMs > 0;
-  document.getElementById('timerStartBtn').style.display  = active ? 'none' : 'inline-block';
-  document.getElementById('timerPauseBtn').style.display  = timerRunning ? 'inline-block' : 'none';
-  document.getElementById('timerResumeBtn').style.display = (!timerRunning && timerAccumMs > 0) ? 'inline-block' : 'none';
-  document.getElementById('timerStopBtn').style.display   = active ? 'inline-block' : 'none';
-  document.getElementById('timerCancelBtn').style.display = active ? 'inline-block' : 'none';
-  document.getElementById('timerLabel').disabled = timerRunning;
-
-  const disp = document.getElementById('timerDisplay');
-  disp.classList.toggle('running', timerRunning);
-  disp.classList.toggle('paused', !timerRunning && timerAccumMs > 0);
-
-  const st = document.getElementById('timerStatus');
-  if (timerRunning)              st.textContent = '● recording — stay focused';
-  else if (timerAccumMs > 0)     st.textContent = 'paused — resume or finish';
-  else                           st.textContent = 'idle — press start to begin';
-}
-
-function deleteTimerDay(date) {
-  let sessions = load(TIMER_SESSIONS_KEY, []);
-  sessions = sessions.filter(s => s.date !== date);
-  save(TIMER_SESSIONS_KEY, sessions);
-  renderTimer();
-  showToast('Day cleared.');
-}
-
-function renderTimer() {
-  const sessions = load(TIMER_SESSIONS_KEY, []);
-  const byDate = {};
-
-  sessions.forEach(s => {
-    if (!byDate[s.date]) byDate[s.date] = { date: s.date, ms: 0, list: [] };
-    byDate[s.date].ms += s.ms;
-    byDate[s.date].list.push(s);
-  });
-
-  const days = Object.values(byDate).sort((a, b) => b.date.localeCompare(a.date));
-  const tbody = document.getElementById('timerLogBody');
-  const empty = document.getElementById('timerEmpty');
-
-  tbody.innerHTML = '';
-  empty.style.display = days.length ? 'none' : 'block';
-
-  days.forEach(day => {
-    const d = new Date(day.date + 'T00:00:00');
-    const pretty = d.toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' });
-
-    const sorted = [...day.list].sort((a, b) => a.id - b.id);
-    const parts  = sorted.slice(0, 5).map(s => fmtDurMs(s.ms));
-    if (sorted.length > 5) parts.push('+' + (sorted.length - 5) + ' more');
-
-    const breakdown = `<div style="font-size:9px;font-family:'Space Mono',monospace;margin-top:3px;color:var(--muted)">${parts.join(' · ')}</div>`;
-
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td style="font-family:'Space Mono',monospace;font-size:10px;color:var(--muted)">${pretty}</td>
-      <td>
-        <span class="score-badge" style="background:#ff79c622;color:#ff79c6">${fmtDurMs(day.ms)}</span>
-        ${breakdown}
-      </td>
-      <td><span style="font-family:'Space Mono',monospace;font-size:11px;color:var(--muted)">${day.list.length}</span></td>
-      <td><button class="btn danger" onclick="deleteTimerDay('${day.date}')"><i class="fa-solid fa-trash-can"></i></button></td>`;
-    tbody.appendChild(tr);
-  });
-
-  const todayMs = byDate[todayLocal()] ? byDate[todayLocal()].ms : 0;
-  const totalMs = sessions.reduce((a, s) => a + s.ms, 0);
-
-  document.getElementById('timerToday').textContent    = fmtDurMs(todayMs);
-  document.getElementById('timerTotal').textContent    = fmtDurMs(totalMs);
-  document.getElementById('timerSessions').textContent = sessions.length;
-  document.getElementById('timerDays').textContent     = days.length;
-}
-
-window.addEventListener('beforeunload', e => {
-  if (timerRunning) { e.preventDefault(); e.returnValue = ''; }
-});
-
-function initTimer() {
-  restoreLive();
-  updateTimerUI();
-  updateTimerDisplay();
-  renderTimer();
-}
-
 // ─── INIT ─────────────────────────────────────────────────────────────────────
 function init() {
   loadTheme();
@@ -2729,7 +2504,6 @@ function init() {
   renderMocks();
   renderSubjects();
   updateSummary();
-  initTimer();
 }
 
 init();
